@@ -15,4 +15,5 @@
 * Run `lighting/server/server.py`.
 
 ### Running Lighting client
+* Make sure server is up and running.
 * Run `lighting/client/client.py`. This is an example script, that demonstrates the use of RPCs that has been defined so far.
