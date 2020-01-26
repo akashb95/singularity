@@ -9,7 +9,8 @@
     cd /path/to/project/lighting && python3 settings.py
     ```
     
-  Generated files will be located in the `lighting` directory.
+  Generated files will be located in the `lighting` directory. In each of these files, fix the import paths to explicitly specify where to import them from:
+  e.g. `import location_pb2 as location__pb2` &rarr; `from lighting import location_pb2 as location__pb2`.
   
 ### Running Lighting server
 * Run `lighting/server/server.py`.
