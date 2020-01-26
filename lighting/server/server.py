@@ -9,7 +9,6 @@ from multiprocessing import cpu_count
 import grpc
 
 import lighting.element_pb2 as element_pb2
-from lighting.element_pb2 import Reply, List
 from lighting.element_pb2_grpc import ElementServicer, add_ElementServicer_to_server
 from lighting.location_pb2 import Location
 from dbHandler import elements_json
@@ -59,7 +58,7 @@ class ElementHandler(ElementServicer):
 
         # if no element found
         if not element:
-            return Reply()
+            return element_pb2.Reply(id=-1)
 
         # if any of these fields empty, then gRPC will return the default value (0 for int, empty string for str, etc.)
         uid = element.get('id', -1)  # make default value -1 because id may well be zer-indexed.
@@ -68,7 +67,7 @@ class ElementHandler(ElementServicer):
         location = Location(lat=element.get('lat'), long=element.get('long'))
         description = element.get('description')
 
-        return Reply(
+        return element_pb2.Reply(
             id=uid,
             status=activity_status,
             location=location,
@@ -92,7 +91,7 @@ class ElementHandler(ElementServicer):
 
         for i, element in enumerate(elements):
             replies.append(
-                Reply(id=element['id'],
+                element_pb2.Reply(id=element['id'],
                       status=activity_status_mapper(element['status']),
                       location=Location(lat=element.get('lat'), long=element.get('long')),
                       description=element.get('description'))
@@ -134,7 +133,7 @@ class ElementHandler(ElementServicer):
                 description = element.get('description')
 
                 # stream reply to client
-                yield Reply(
+                yield element_pb2.Reply(
                     id=uid,
                     status=activity_status,
                     location=location,
