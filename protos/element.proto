@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package lighting.element;
+
+import "location.proto";
+
+service Element {
+    rpc GetElement (Request) returns (Reply);
+
+    rpc ListElements (Empty) returns (stream List);
+
+    rpc SearchElements (FilterByLocationRequest) returns (stream Reply);
+}
+
+message Empty {
+}
+
+message Request {
+    int32 id = 1;
+}
+
+message Reply {
+    int32 id = 1;
+    ActivityStatus status = 2;
+    lighting.location.Location location = 3;
+    string description = 4;
+}
+
+message List {
+    repeated Reply elements = 1;
+}
+
+message FilterByLocationRequest {
+    lighting.location.MapRect rectangle = 1;
+}
+
+enum ActivityStatus {
+    UNAVAILABLE = 0;
+    ACTIVE = 1;
+    INACTIVE = 2;
+    UNASSOCIATED_TO_ASSET = 3;
+    UNASSOCIATED_TO_TC = 4; // TC = Telecell
+    UNASSOCIATED_TO_ASSET_AND_TC = 5;
+    DELETED = 15;
+}

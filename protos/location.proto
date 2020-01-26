@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package lighting.location;
+
+message Location {
+    double long = 1;
+    double lat = 2;
+}
+
+message MapRect {
+    Location hi = 1;
+    Location lo = 2;
+}
