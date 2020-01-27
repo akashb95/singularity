@@ -6,7 +6,6 @@ from lighting import settings as lighting_settings
 import grpc
 
 import lighting.element_pb2 as element_pb2
-from lighting.element_pb2 import Request, FilterByLocationRequest, Empty
 from lighting.element_pb2_grpc import ElementStub
 from lighting.location_pb2 import Location, MapRect
 
@@ -25,14 +24,14 @@ def run(port: int):
     channel = grpc.insecure_channel('localhost:{}'.format(port))
 
     stub = ElementStub(channel)
-    response = stub.GetElement(Request(id=1))
+    response = stub.GetElement(element_pb2.Request(id=1))
     logger.info("Element {} ({}, {}), status: {} \n{}"
                 .format(response.id, response.location.lat, response.location.long,
                         element_pb2.ActivityStatus.Name(response.status),
                         response.description))
 
     map_rectangle = MapRect(lo=Location(long=0, lat=0), hi=Location(long=0.5, lat=0.5))
-    search_response = stub.SearchElements(FilterByLocationRequest(rectangle=map_rectangle))
+    search_response = stub.SearchElements(element_pb2.FilterByLocationRequest(rectangle=map_rectangle))
 
     # need to iterate over all returned replies before channel is closed
     for resp in search_response:
@@ -41,7 +40,7 @@ def run(port: int):
                             element_pb2.ActivityStatus.Name(resp.status),
                             resp.description))
 
-    response_all = stub.ListElements(Empty())
+    response_all = stub.ListElements(element_pb2.Empty())
     for i, resp_list in enumerate(response_all):
         for resp in resp_list.elements:
             logger.info("Stream {} | Element {} ({}, {}), status: {} \n{}"
