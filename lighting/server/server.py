@@ -3,7 +3,7 @@ from log import setup_logger
 
 import os
 from concurrent import futures
-from lighting import settings as lighting_settings
+import settings as lighting_settings
 from multiprocessing import cpu_count
 
 import grpc

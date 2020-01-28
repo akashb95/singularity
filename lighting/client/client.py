@@ -1,7 +1,7 @@
 import logging
 from log import setup_logger
 import os
-from lighting import settings as lighting_settings
+import settings as lighting_settings
 
 import grpc
 
