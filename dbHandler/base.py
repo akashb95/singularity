@@ -3,11 +3,11 @@ import sqlalchemy as db
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import logging
-from log import setup_logger
 
 import settings
 settings.load_env_vars()
-logger = setup_logger("server", logging.DEBUG)
+
+logger = logging.getLogger("server")
 
 logger.debug("Creating DB Engine, DB Session and Base class.")
 
