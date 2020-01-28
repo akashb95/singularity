@@ -1,6 +1,12 @@
 from dbHandler import Base, engine, Session
 
 
+def regenerate_tables():
+    Base.metadata.drop_all(engine)
+    Base.metadata.create_all(engine)
+    return
+
+
 def seed_elements(num_elements: int = 150):
     from dbHandler import Element
     from random import uniform, choice
@@ -24,5 +30,5 @@ def seed_elements(num_elements: int = 150):
 
 
 if __name__ == "__main__":
-    Base.metadata.create_all(engine)
+    regenerate_tables()
     seed_elements()

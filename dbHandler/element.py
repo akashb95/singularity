@@ -6,10 +6,10 @@ class Element(Base):
     __tablename__ = "elements"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column("description", String(100))
-    latitude = Column("latitude", Float)
-    longitude = Column("longitude", Float)
-    status = Column("status", Integer)
+    description = Column("description", String(100), default="")
+    latitude = Column("latitude", Float, default=0.0)
+    longitude = Column("longitude", Float, default=0.0)
+    status = Column("status", Integer, default=0)
 
     def __init__(self, description: str, latitude: float, longitude: float, status: int):
 
