@@ -1,12 +1,18 @@
 import lighting.element_pb2 as element_pb2
 from lighting.element_pb2_grpc import ElementServicer
 from lighting.location_pb2 import Location
-from dbHandler import elements_json
 from lighting.server.helpers import activity_status_mapper
+
+from dbHandler import Session, Element
+import sqlalchemy as db
 
 
 class ElementHandler(ElementServicer):
-    MAX_LIST_SIZE = 2
+    MAX_LIST_SIZE = 50
+
+    def __init__(self):
+        self.db = Session()
+        return
 
     def GetElement(self, request, context):
         """
@@ -17,24 +23,22 @@ class ElementHandler(ElementServicer):
         :return:
         """
 
-        element = elements_json.by_id(request.id)
+        element = self.db.query(Element).get(request.id)
 
         # if no element found
         if not element:
-            return element_pb2.Reply(id=-1)
+            return element_pb2.Reply()
 
         # if any of these fields empty, then gRPC will return the default value (0 for int, empty string for str, etc.)
-        uid = element.get('id', -1)  # make default value -1 because id may well be zer-indexed.
-        activity_status = activity_status_mapper(element['status'])
+        activity_status = activity_status_mapper(element.status)
 
-        location = Location(lat=element.get('lat'), long=element.get('long'))
-        description = element.get('description')
+        location = Location(lat=element.latitude, long=element.longitude)
 
         return element_pb2.Reply(
-            id=uid,
+            id=element.id,
             status=activity_status,
             location=location,
-            description=description
+            description=element.description
         )
 
     def ListElements(self, request, context):
@@ -49,15 +53,15 @@ class ElementHandler(ElementServicer):
         """
 
         # get elements
-        elements = elements_json.get_all()
+        elements = self.db.query(Element).all()
         replies = []
 
         for i, element in enumerate(elements):
             replies.append(
-                element_pb2.Reply(id=element['id'],
-                                  status=activity_status_mapper(element['status']),
-                                  location=Location(lat=element.get('lat'), long=element.get('long')),
-                                  description=element.get('description'))
+                element_pb2.Reply(id=element.id,
+                                  status=activity_status_mapper(element.status),
+                                  location=Location(lat=element.latitude, long=element.longitude),
+                                  description=element.description)
             )
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(elements) - 1:
@@ -84,21 +88,20 @@ class ElementHandler(ElementServicer):
         bottom = min(request.rectangle.lo.lat, request.rectangle.hi.lat)
 
         # find elements in that fall in bounding box
-        elements = elements_json.get_all()
+        elements = self.db.query(Element) \
+            .filter(
+            db.and_(Element.longitude >= left, Element.longitude <= right,
+                    Element.latitude >= bottom, Element.latitude <= top)) \
+            .all()
+
         for element in elements:
-            lat = element.get('lat', 0)
-            long = element.get('long', 0)
+            activity_status = activity_status_mapper(element.status)
+            location = Location(lat=element.latitude, long=element.longitude)
 
-            if top >= lat >= bottom and right >= long >= left:
-                uid = element.get('id', -1)
-                activity_status = activity_status_mapper(element.get('status', 0))
-                location = Location(lat=element.get('lat'), long=element.get('long'))
-                description = element.get('description')
-
-                # stream reply to client
-                yield element_pb2.Reply(
-                    id=uid,
-                    status=activity_status,
-                    location=location,
-                    description=description
-                )
+            # stream reply to client
+            yield element_pb2.Reply(
+                id=element.id,
+                status=activity_status,
+                location=location,
+                description=element.description
+            )
