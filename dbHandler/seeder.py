@@ -112,8 +112,10 @@ def seed_users(n):
     roles = [i for i in range(4)]
 
     for i in range(n):
-        user = User("telensa-{}".format(str(randint(0, 100000))),
-                    sha224("1ns3cure").hexdigest(),
+        username = "telensa-{}".format(str(randint(0, 100000)))
+        hashed = sha224("1ns3cure".encode('utf-8')).hexdigest()
+        user = User(username,
+                    hashed,
                     choice(roles))
         session.add(user)
 
