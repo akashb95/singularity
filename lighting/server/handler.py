@@ -3,15 +3,16 @@ from lighting.element_pb2_grpc import ElementServicer
 from lighting.location_pb2 import Location
 from lighting.server.helpers import activity_status_mapper
 
-from dbHandler import Session, Element
+from dbHandler import Element, engine
 import sqlalchemy as db
+from sqlalchemy.orm import sessionmaker
 
 
 class ElementHandler(ElementServicer):
     MAX_LIST_SIZE = 50
 
     def __init__(self):
-        self.db = Session()
+        self.db = sessionmaker(bind=engine)()
         return
 
     def GetElement(self, request, context):
