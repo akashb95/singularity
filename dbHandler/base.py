@@ -1,10 +1,11 @@
+import logging
 import os
+
 import sqlalchemy as db
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import logging
 
 import settings
+
 settings.load_env_vars()
 
 logger = logging.getLogger("server")
@@ -20,5 +21,4 @@ engine = db.create_engine("{db_conn}://{user}:{password}@{host}/{db_name}"
 
 logger.debug("Connected to {}".format(engine))
 
-Session = sessionmaker(bind=engine)
 Base = declarative_base()

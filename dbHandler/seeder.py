@@ -1,4 +1,6 @@
-from dbHandler import Base, engine, Session
+from sqlalchemy.orm import sessionmaker
+
+from dbHandler import Base, engine
 
 
 def regenerate_tables():
@@ -25,7 +27,8 @@ def seed():
     from dbHandler import Element, Telecell, Asset, Basestation
     from random import uniform, choice
 
-    session = Session()
+    session = sessionmaker(bind=engine)()
+
     status_choices = [0, 1, 2, 3, 4, 5, 15]
     bs_version_choices = [3, 4]
     basestations = []
