@@ -1,3 +1,5 @@
+from hashlib import sha224
+
 from sqlalchemy.orm import sessionmaker
 
 from dbHandler import Base, engine
@@ -15,7 +17,7 @@ def regenerate_tables():
     return
 
 
-def seed():
+def seed_lighting_components():
     """
     A very ugly seeder that allows for no customizability.... Yet....
 
@@ -103,6 +105,23 @@ def seed():
     return
 
 
+def seed_users(n):
+    from dbHandler import User
+    from random import randint, choice
+    session = sessionmaker(bind=engine)()
+    roles = [i for i in range(4)]
+
+    for i in range(n):
+        user = User("telensa-{}".format(str(randint(0, 100000))),
+                    sha224("1ns3cure").hexdigest(),
+                    choice(roles))
+        session.add(user)
+
+    session.commit()
+    session.close()
+
+
 if __name__ == "__main__":
     regenerate_tables()
-    seed()
+    seed_lighting_components()
+    seed_users(10)
