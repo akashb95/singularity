@@ -31,7 +31,7 @@ def seed_lighting_components():
 
     session = sessionmaker(bind=engine)()
 
-    status_choices = [0, 1, 2, 3, 4, 5, 15]
+    status_choices = [0, 1, 2, 15]
     bs_version_choices = [3, 4]
     basestations = []
     telecell_uuid = 1

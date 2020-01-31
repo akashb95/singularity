@@ -3,11 +3,18 @@ syntax = "proto3";
 package lighting.location;
 
 message Location {
+    // longitude - should be in range (-180, 180)
     double long = 1;
+
+    // latitude - should be in range (-180, 180)
     double lat = 2;
 }
 
 message MapRect {
     Location hi = 1;
     Location lo = 2;
+}
+
+message FilterByLocationRequest {
+    lighting.location.MapRect rectangle = 1;
 }

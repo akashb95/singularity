@@ -1,18 +1,23 @@
+// Per business logic, element = lamp
+
 syntax = "proto3";
 
 package lighting.element;
 
 import "location.proto";
+import "asset.proto";
 
 service Element {
     rpc GetElement (Request) returns (Reply);
 
-    rpc ListElements (Empty) returns (stream List);
+    rpc ListElements (ListRequest) returns (stream List);
 
-    rpc SearchElements (FilterByLocationRequest) returns (stream Reply);
+    rpc SearchElements (lighting.location.FilterByLocationRequest) returns (stream Reply);
 }
 
-message Empty {
+message ListRequest {
+    int32 limit = 1;
+    int32 offset = 2;
 }
 
 message Request {
@@ -20,26 +25,29 @@ message Request {
 }
 
 message Reply {
+    // unique identifier within system
     int32 id = 1;
+
+    // last known status of element
     ActivityStatus status = 2;
-    lighting.location.Location location = 3;
-    string description = 4;
+
+    // should be something helpful
+    string description = 3;
+
+    // details of the Asset that this element is connected to
+    lighting.asset.Reply asset = 4;
+
+    // where is this element?
+    lighting.location.Location location = 15;
 }
 
 message List {
-    repeated Reply elements = 1;
-}
-
-message FilterByLocationRequest {
-    lighting.location.MapRect rectangle = 1;
+    repeated lighting.element.Reply elements = 1;
 }
 
 enum ActivityStatus {
     UNAVAILABLE = 0;
     ACTIVE = 1;
     INACTIVE = 2;
-    UNASSOCIATED_TO_ASSET = 3;
-    UNASSOCIATED_TO_TC = 4; // TC = Telecell
-    UNASSOCIATED_TO_ASSET_AND_TC = 5;
     DELETED = 15;
 }
