@@ -10,7 +10,7 @@ class User(Base):
     username = Column(String(16), nullable=False, unique=True)
     hashed_pass = Column(String(100), nullable=False)
     role = Column(Integer, nullable=False, default=0)
-    created = Column(DateTime, default=func.now(), nullable=False)
+    created = Column(DateTime, default=func.utc_timestamp(), nullable=False)
 
     def __init__(self, username, hashed_pass, role):
         self.username = username
