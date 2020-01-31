@@ -2,15 +2,16 @@
 
 from grpc_tools import protoc
 
-# wd = project root dir
 protoc.main((
     '',
     '-I../protos',
     '--python_out=.',
     '--grpc_python_out=.',
+    '../protos/asset.proto',
+    '../protos/basestation.proto',
     '../protos/element.proto',
-    '../protos/location.proto'
-    # '../protos/lighting/assets.proto',
-    # '../protos/lighting/elements.proto',
-    # '../protos/lighting/telecells.proto',
+    '../protos/location.proto',
+    '../protos/telecell.proto',
+    '../protos/ts.proto',
+    '../protos/user.proto'
 ))
