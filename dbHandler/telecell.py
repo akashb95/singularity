@@ -14,7 +14,7 @@ class Telecell(Base):
     latitude = Column(Float)
     longitude = Column(Float)
     status = Column(Integer, default=0)
-    updated_at = Column(DateTime, nullable=False, default=func.now())
+    updated_at = Column(DateTime, nullable=False, default=func.utc_timestamp())
 
     # a telecell has 1 basestation at a time, but each basestation is connected to multiple telecells
     bs_id = Column(Integer, ForeignKey("basestations.id"))
