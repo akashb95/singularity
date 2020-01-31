@@ -24,7 +24,7 @@ A `.env-template` file is provided in the root of the project directory. This sh
 * Run `lighting/client/client.py`. This is an example script, that demonstrates the use of RPCs that has been defined so far.
 
 ### DB
-For this project, I'm using SQLAlchemy as an ORM to manage the data. All Python files responsible for defining the data structure are in `dbHandler`. `dbHandler/seeder.py` includes some handy functions for creating a DB from the schema and seeding the initial, empty DB.
+For this project, I'm using SQLAlchemy as an ORM to manage the data. All Python files responsible for defining the data structure are in `dbHandler`. `dbHandler/seeder.py` includes some handy functions for creating a DB from the schema and seeding the initial, empty DB. All stored datetimes will be in UTC timezone. They should be converted to the appropriate timezone when the data is called.
 
 Also ensure that all the pertinent env vars are set in your `.env` file. Further, ensure that the DB is set up and ready to accept connections.
 
