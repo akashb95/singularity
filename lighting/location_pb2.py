@@ -20,7 +20,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='lighting.location',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0elocation.proto\x12\x11lighting.location\"%\n\x08Location\x12\x0c\n\x04long\x18\x01 \x01(\x01\x12\x0b\n\x03lat\x18\x02 \x01(\x01\"[\n\x07MapRect\x12\'\n\x02hi\x18\x01 \x01(\x0b\x32\x1b.lighting.location.Location\x12\'\n\x02lo\x18\x02 \x01(\x0b\x32\x1b.lighting.location.Locationb\x06proto3')
+  serialized_pb=_b(
+    '\n\x0elocation.proto\x12\x11lighting.location\"%\n\x08Location\x12\x0c\n\x04long\x18\x01 \x01(\x01\x12\x0b\n\x03lat\x18\x02 \x01(\x01\"[\n\x07MapRect\x12\'\n\x02hi\x18\x01 \x01(\x0b\x32\x1b.lighting.location.Location\x12\'\n\x02lo\x18\x02 \x01(\x0b\x32\x1b.lighting.location.Location\"H\n\x17\x46ilterByLocationRequest\x12-\n\trectangle\x18\x01 \x01(\x0b\x32\x1a.lighting.location.MapRectb\x06proto3')
 )
 
 
@@ -101,25 +102,63 @@ _MAPRECT = _descriptor.Descriptor(
   serialized_end=167,
 )
 
+_FILTERBYLOCATIONREQUEST = _descriptor.Descriptor(
+  name='FilterByLocationRequest',
+  full_name='lighting.location.FilterByLocationRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='rectangle', full_name='lighting.location.FilterByLocationRequest.rectangle', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=169,
+  serialized_end=241,
+)
+
 _MAPRECT.fields_by_name['hi'].message_type = _LOCATION
 _MAPRECT.fields_by_name['lo'].message_type = _LOCATION
+_FILTERBYLOCATIONREQUEST.fields_by_name['rectangle'].message_type = _MAPRECT
 DESCRIPTOR.message_types_by_name['Location'] = _LOCATION
 DESCRIPTOR.message_types_by_name['MapRect'] = _MAPRECT
+DESCRIPTOR.message_types_by_name['FilterByLocationRequest'] = _FILTERBYLOCATIONREQUEST
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Location = _reflection.GeneratedProtocolMessageType('Location', (_message.Message,), {
   'DESCRIPTOR' : _LOCATION,
   '__module__' : 'location_pb2'
   # @@protoc_insertion_point(class_scope:lighting.location.Location)
-  })
+})
 _sym_db.RegisterMessage(Location)
 
 MapRect = _reflection.GeneratedProtocolMessageType('MapRect', (_message.Message,), {
-  'DESCRIPTOR' : _MAPRECT,
-  '__module__' : 'location_pb2'
+  'DESCRIPTOR': _MAPRECT,
+  '__module__': 'location_pb2'
   # @@protoc_insertion_point(class_scope:lighting.location.MapRect)
-  })
+})
 _sym_db.RegisterMessage(MapRect)
 
+FilterByLocationRequest = _reflection.GeneratedProtocolMessageType('FilterByLocationRequest', (_message.Message,), {
+  'DESCRIPTOR': _FILTERBYLOCATIONREQUEST,
+  '__module__': 'location_pb2'
+  # @@protoc_insertion_point(class_scope:lighting.location.FilterByLocationRequest)
+})
+_sym_db.RegisterMessage(FilterByLocationRequest)
 
 # @@protoc_insertion_point(module_scope)
