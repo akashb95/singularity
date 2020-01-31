@@ -1,0 +1,13 @@
+// Copied from google/protobuf/timestamp.proto because having issues with import paths :/
+
+syntax = "proto3";
+
+package lighting.ts;
+
+message Timestamp {
+    // seconds since epoch
+    int64 seconds = 1;
+
+    // nanoseconds
+    int32 nanos = 2;
+}

@@ -1,0 +1,35 @@
+// Users who access the system
+
+syntax = "proto3";
+
+package user;
+
+import "ts.proto";
+
+service User {
+    rpc GetUser (Request) returns (Reply);
+}
+
+message Request {
+    oneof user_id {
+        int32 id = 1;
+        string username = 2;
+    }
+}
+
+message Reply {
+    int32 id = 1;
+    string username = 2;
+
+    // pass in password through a hashing function before storing here
+    string hashed_pass = 3;
+    user.Role role = 4;
+    lighting.ts.Timestamp created = 5;
+}
+
+enum Role {
+    ADMIN = 0;
+    DEV = 1;
+    MANAGER = 2;
+    USER = 3;
+}

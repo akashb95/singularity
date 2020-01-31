@@ -1,0 +1,50 @@
+// The piece of hardware that all telecells connect to
+
+syntax = "proto3";
+
+package lighting.basestation;
+
+import "location.proto";
+
+service Basestation {
+
+    rpc GetBasestation (Request) returns (Reply);
+
+    rpc ListBasestations (List) returns (stream List);
+
+    rpc SearchBasestations (lighting.location.FilterByLocationRequest) returns (stream Reply);
+}
+
+message Request {
+    oneof unique_identifier {
+        int32 id = 1;
+        int32 uuid = 2;
+    }
+}
+
+message Reply {
+    // unique identifier within a particular system
+    int32 id = 1;
+
+    // unique identifier globally, across all systems
+    int64 uuid = 2;
+
+    // BS firmware version
+    int32 version = 3;
+
+    // activity status indicator
+    ActivityStatus status = 4;
+
+    // where is this BS?
+    lighting.location.Location location = 15;
+}
+
+message List {
+    repeated Reply basestations = 1;
+}
+
+enum ActivityStatus {
+    UNAVAILABLE = 0;
+    ACTIVE = 1;
+    INACTIVE = 2;
+}
