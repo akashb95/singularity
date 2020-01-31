@@ -1,6 +1,8 @@
 import lighting.element_pb2 as element_pb2
 from lighting.element_pb2_grpc import ElementServicer
 from lighting.location_pb2 import Location
+import lighting.asset_pb2 as asset_pb2
+
 from lighting.server.helpers import activity_status_mapper
 
 from dbHandler import Element, engine
@@ -34,11 +36,13 @@ class ElementHandler(ElementServicer):
         activity_status = activity_status_mapper(element.status)
 
         location = Location(lat=element.latitude, long=element.longitude)
+        asset = asset_pb2.Reply(id=element.asset.id)
 
         return element_pb2.Reply(
             id=element.id,
             status=activity_status,
             location=location,
+            asset=asset,
             description=element.description
         )
 
@@ -59,10 +63,12 @@ class ElementHandler(ElementServicer):
 
         for i, element in enumerate(elements):
             replies.append(
-                element_pb2.Reply(id=element.id,
-                                  status=activity_status_mapper(element.status),
-                                  location=Location(lat=element.latitude, long=element.longitude),
-                                  description=element.description)
+                element_pb2.Reply(
+                    id=element.id,
+                    status=activity_status_mapper(element.status),
+                    location=Location(lat=element.latitude, long=element.longitude),
+                    asset=asset_pb2.Reply(id=element.asset.id),
+                    description=element.description)
             )
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(elements) - 1:
@@ -98,11 +104,13 @@ class ElementHandler(ElementServicer):
         for element in elements:
             activity_status = activity_status_mapper(element.status)
             location = Location(lat=element.latitude, long=element.longitude)
+            asset = asset_pb2.Reply(id=element.asset.id)
 
             # stream reply to client
             yield element_pb2.Reply(
                 id=element.id,
                 status=activity_status,
                 location=location,
+                asset=asset,
                 description=element.description
             )
