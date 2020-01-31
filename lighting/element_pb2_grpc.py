@@ -15,21 +15,21 @@ class ElementStub(object):
         Args:
           channel: A grpc.Channel.
         """
-    self.GetElement = channel.unary_unary(
-        '/lighting.element.Element/GetElement',
-        request_serializer=element__pb2.Request.SerializeToString,
-        response_deserializer=element__pb2.Reply.FromString,
+        self.GetElement = channel.unary_unary(
+            '/lighting.element.Element/GetElement',
+            request_serializer=element__pb2.Request.SerializeToString,
+            response_deserializer=element__pb2.Reply.FromString,
         )
-    self.ListElements = channel.unary_stream(
-        '/lighting.element.Element/ListElements',
-        request_serializer=element__pb2.ListRequest.SerializeToString,
-        response_deserializer=element__pb2.List.FromString,
-    )
-    self.SearchElements = channel.unary_stream(
-        '/lighting.element.Element/SearchElements',
-        request_serializer=location__pb2.FilterByLocationRequest.SerializeToString,
-        response_deserializer=element__pb2.Reply.FromString,
-    )
+        self.ListElements = channel.unary_stream(
+            '/lighting.element.Element/ListElements',
+            request_serializer=element__pb2.ListRequest.SerializeToString,
+            response_deserializer=element__pb2.List.FromString,
+        )
+        self.SearchElements = channel.unary_stream(
+            '/lighting.element.Element/SearchElements',
+            request_serializer=location__pb2.FilterByLocationRequest.SerializeToString,
+            response_deserializer=element__pb2.Reply.FromString,
+        )
 
 
 class ElementServicer(object):
