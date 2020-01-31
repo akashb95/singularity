@@ -114,9 +114,7 @@ def seed_users(n):
     for i in range(n):
         username = "telensa-{}".format(str(randint(0, 100000)))
         hashed = sha224("1ns3cure".encode('utf-8')).hexdigest()
-        user = User(username,
-                    hashed,
-                    choice(roles))
+        user = User(username, hashed, choice(roles))
         session.add(user)
 
     session.commit()
@@ -125,5 +123,5 @@ def seed_users(n):
 
 if __name__ == "__main__":
     regenerate_tables()
-    seed_lighting_components()
     seed_users(10)
+    seed_lighting_components()
