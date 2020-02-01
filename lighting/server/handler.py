@@ -57,7 +57,7 @@ class ElementHandler(ElementServicer):
         :return:
         """
 
-        # get elements
+        # get elements - TODO #13: use the new received message type to limit and skip results returned by DB queries
         elements = self.db.query(Element).all()
         replies = []
 
