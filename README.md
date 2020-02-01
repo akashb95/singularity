@@ -32,7 +32,7 @@ The solution is quite simple: microservices 🎉. It keeps the separate componen
 
 Of course, microservices have been around for years and years. But who wants to always stick with the old? 
 
-And so, this particular project experiments with [gRPC](grpc.io). gRPC is a (relatively new) framework that allows microservices to communicate via well-defined protocols. Each of the services can be in any of 10 different languages, from Java to JavaScript, from PHP to Python. 
+And so, this particular project experiments with [gRPC](https://grpc.io). gRPC is a (relatively new) framework that allows microservices to communicate via well-defined protocols. Each of the services can be in any of 10 different languages, from Java to JavaScript, from PHP to Python. 
 
 The idea is simple enough. We give gRPC certain **protocol definitions**. Using a simple CLI command, we generate **boilerplate code** in whichever of the supported languages we choose. The boilerplate provides functions/class/methods with which we can tell **servers and clients** what to do with the messages they receive and how to respond.
 
