@@ -1,3 +1,6 @@
+import logging
+from log import setup_logger
+
 import lighting.lib.element_pb2 as element_pb2
 from lighting.lib.element_pb2_grpc import ElementServicer
 from lighting.lib.location_pb2 import Location
@@ -15,6 +18,7 @@ class ElementHandler(ElementServicer):
 
     def __init__(self):
         self.db = sessionmaker(bind=engine)()
+        self.logger = setup_logger("elementHandler", logging.DEBUG)
         return
 
     def Get(self, request, context):
@@ -25,6 +29,8 @@ class ElementHandler(ElementServicer):
         :param context:
         :return:
         """
+
+        self.logger.info("Request Element with ID of {}".format(request.id))
 
         element = self.db.query(Element).get(request.id)
 
@@ -57,8 +63,19 @@ class ElementHandler(ElementServicer):
         :return:
         """
 
-        # get elements - TODO #13: use the new received message type to limit and skip results returned by DB queries
-        elements = self.db.query(Element).all()
+        self.logger.info("Request list of {} Elements, offset by {}".format(request.limit, request.offset))
+
+        # get all elements if no limit or offset specified.
+        elements = self.db.query(Element)
+
+        if request.limit:
+            elements = elements.limit(request.limit)
+
+        if request.offset:
+            elements = elements.offset(request.offset)
+
+        elements = elements.all()
+
         replies = []
 
         for i, element in enumerate(elements):
@@ -93,6 +110,8 @@ class ElementHandler(ElementServicer):
         right = max(request.rectangle.lo.long, request.rectangle.hi.long)
         top = max(request.rectangle.lo.lat, request.rectangle.hi.lat)
         bottom = min(request.rectangle.lo.lat, request.rectangle.hi.lat)
+
+        self.logger.info("Request for Elements in box between ({}, {}) and ({}, {})".format(bottom, left, top, right))
 
         # find elements in that fall in bounding box
         elements = self.db.query(Element) \

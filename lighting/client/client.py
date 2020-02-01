@@ -45,7 +45,7 @@ def run(port: int):
                             resp.description))
 
     # search list
-    response_all = stub.List(element_pb2.ListRequest())
+    response_all = stub.List(element_pb2.ListRequest(limit=100, offset=10))
     for i, resp_list in enumerate(response_all):
         for resp in resp_list.elements:
             logger.info("Stream {} | Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
