@@ -1,6 +1,7 @@
 # singularity
 
-## Quick Nav
+<a name="nav"></a>
+## Quick Nav 🗺
 - [Start with "Why?"‍](#why)
 - [What's the idea?](#what)
 - [How do we do this?](#how)
@@ -22,6 +23,8 @@ This project is a chance to show what is possible with a bit of time, a lot of e
 
 Oh and there's gonna be pizza. And coke (BYO credit cards). Maybe a hipflask of Captain Morgan. 👀
 
+[🗺 Go back to Navigation &uarr;‍](#nav)
+
 <a name="what"></a>
 ## What's the idea? 💡
 In the time afforded to us, we can make a decent attempt at showcasing some of the key functionality within PLANet. After an informal discussion with Jon, it seems that the most important things people do with our hunk of software is check Daily Faults (what's gone wrong?? 🤢) and billing (how much am I shelling out _now_??? 🔥💸). 
@@ -36,6 +39,8 @@ And so, this particular project experiments with [gRPC](https://grpc.io). gRPC i
 
 The idea is simple enough. We give gRPC certain **protocol definitions**. Using a simple CLI command, we generate **boilerplate code** in whichever of the supported languages we choose. The boilerplate provides functions/class/methods with which we can tell **servers and clients** what to do with the messages they receive and how to respond.
 
+[🗺 Go back to Navigation &uarr;‍](#nav)
+
 <a name="how"></a>
 ## How do we do this? 🧐⁉️
 We envisage a system where:
@@ -49,11 +54,15 @@ Of course, for the _full_ range of functionality that Telensa provides, this wou
 
 For now, we propose that we come up with a list of tasks (that we'll put in as Github Issues), that can be taken up by anyone who wishes to tackle that particular task. The list of tasks itself should be decided in conference, but we deliberately want to keep these limited owing to the very little time we have on the day ⏰.
 
+[🗺 Go back to Navigation &uarr;‍](#nav)
+
 <a name="leggo"></a>
 ## Leggo 🏃🏽‍♂️🏃🏽‍♀️
 This repo is mainly a kind of template that everyone else can follow when working with gRPC stuff. It also will, hopefully, convey the structure that I envisage for the project. For now, this only contains implementations of gRPC server and client in Python the language of _my_ expertise. Separate microservices should be stored as separate projects on separate [orphan branches](https://stackoverflow.com/questions/14679614/whats-the-best-practice-for-putting-multiple-projects-in-a-git-repository).
 
 _Disclaimer: This repo is my gRPC Tutorial Island (everyone else is welcome too, it ain't a Desert Island 🏜!), so please bear in mind there will be places where I'm probably not following best practices, and using hotfixes._
+
+[🗺 Go back to Navigation &uarr;‍](#nav)
 
 <a name="installing-grpc-stuff"></a>
 #### Installing gRPC stuff
@@ -89,3 +98,5 @@ A thorough tutorial: [link](https://auth0.com/blog/sqlalchemy-orm-tutorial-for-p
 #### Running Lighting client
 * Make sure server is up and running.
 * Run `cd lighting/client && python3 client.py`. This is an example script, that demonstrates the use of RPCs that have been defined so far. It simply fires off some requests to the server specified above and logs the response to console.
+
+[🗺 Go back to Navigation &uarr;‍](#nav)
