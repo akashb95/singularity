@@ -13,6 +13,8 @@ service Basestation {
     rpc ListBasestations (List) returns (stream List);
 
     rpc SearchBasestations (lighting.location.FilterByLocationRequest) returns (stream Reply);
+
+    // TODO: add more RPCs here to create and update Basestations
 }
 
 message Request {
