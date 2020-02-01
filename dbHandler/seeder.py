@@ -21,7 +21,7 @@ def seed_lighting_components():
     """
     A very ugly seeder that allows for no customizability.... Yet....
 
-    TODO: Make function more flexible. Low priority.
+    TODO #7: Make function more flexible. Low priority.
 
     :return:
     """

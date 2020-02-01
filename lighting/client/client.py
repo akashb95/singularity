@@ -55,6 +55,9 @@ def run(port: int):
 
     # close channel.
     channel.close()
+
+    # TODO #6: create channels with stubs for Basestation, Asset, Telecell and User, and test those endpoints too.
+
     return
 
 
