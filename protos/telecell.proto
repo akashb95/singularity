@@ -16,6 +16,8 @@ service Telecell {
     rpc ListTelecells (ListRequest) returns (stream List);
 
     rpc SearchElements (lighting.location.FilterByLocationRequest) returns (stream Reply);
+
+    // TODO #10: add RPCs to create and update TCs.
 }
 
 message ListRequest {
