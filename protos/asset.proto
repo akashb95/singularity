@@ -12,6 +12,8 @@ service Asset {
     rpc ListAssets (ListRequest) returns (stream List);
 
     rpc SearchElements (lighting.location.FilterByLocationRequest) returns (stream Reply);
+
+    // TODO #9: add RPCs to create and update assets. This is practically the 'asset import' functionality.
 }
 
 message ListRequest {

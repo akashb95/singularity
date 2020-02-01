@@ -13,6 +13,8 @@ service Element {
     rpc ListElements (ListRequest) returns (stream List);
 
     rpc SearchElements (lighting.location.FilterByLocationRequest) returns (stream Reply);
+
+    // TODO #9: add RPCs to create and update elements. This is practically the 'asset import' functionality.
 }
 
 message ListRequest {
