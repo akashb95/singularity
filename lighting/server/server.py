@@ -8,7 +8,7 @@ from multiprocessing import cpu_count
 
 import grpc
 
-from lighting.element_pb2_grpc import add_ElementServicer_to_server
+from lighting.lib.element_pb2_grpc import add_ElementServicer_to_server
 from lighting.server.handler import ElementHandler
 
 logger = setup_logger("server", logging.DEBUG)

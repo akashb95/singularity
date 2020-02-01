@@ -1,7 +1,7 @@
-import lighting.element_pb2 as element_pb2
-from lighting.element_pb2_grpc import ElementServicer
-from lighting.location_pb2 import Location
-import lighting.asset_pb2 as asset_pb2
+import lighting.lib.element_pb2 as element_pb2
+from lighting.lib.element_pb2_grpc import ElementServicer
+from lighting.lib.location_pb2 import Location
+import lighting.lib.asset_pb2 as asset_pb2
 
 from lighting.server.helpers import activity_status_mapper
 

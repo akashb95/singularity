@@ -5,9 +5,9 @@ import settings as lighting_settings
 
 import grpc
 
-import lighting.element_pb2 as element_pb2
-import lighting.location_pb2 as location_pb2
-from lighting.element_pb2_grpc import ElementStub
+import lighting.lib.element_pb2 as element_pb2
+import lighting.lib.location_pb2 as location_pb2
+from lighting.lib.element_pb2_grpc import ElementStub
 
 logger = setup_logger("client", logging.DEBUG)
 
@@ -26,7 +26,7 @@ def run(port: int):
     stub = ElementStub(channel)
 
     # search by id
-    response = stub.GetElement(element_pb2.Request(id=9))
+    response = stub.Get(element_pb2.Request(id=9))
     logger.info("Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
                 .format(response.id, response.location.lat, response.location.long, response.asset.id,
                         element_pb2.ActivityStatus.Name(response.status),
@@ -35,7 +35,7 @@ def run(port: int):
     # search by location
     map_rectangle = location_pb2.MapRect(lo=location_pb2.Location(long=0, lat=0),
                                          hi=location_pb2.Location(long=100, lat=10))
-    search_response = stub.SearchElements(location_pb2.FilterByLocationRequest(rectangle=map_rectangle))
+    search_response = stub.SearchByLocation(location_pb2.FilterByLocationRequest(rectangle=map_rectangle))
 
     # need to iterate over all returned replies before channel is closed
     for resp in search_response:
@@ -45,7 +45,7 @@ def run(port: int):
                             resp.description))
 
     # search list
-    response_all = stub.ListElements(element_pb2.ListRequest())
+    response_all = stub.List(element_pb2.ListRequest())
     for i, resp_list in enumerate(response_all):
         for resp in resp_list.elements:
             logger.info("Stream {} | Element {} ({}, {}) connected to Asset {}, status: {} \n{}"

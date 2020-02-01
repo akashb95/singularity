@@ -1,4 +1,4 @@
-import lighting.element_pb2 as element_pb2
+import lighting.lib.element_pb2 as element_pb2
 
 
 def activity_status_mapper(activity_status: int):
