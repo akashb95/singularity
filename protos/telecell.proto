@@ -13,9 +13,9 @@ import "asset.proto";
 service Telecell {
     rpc GetTelecell (Request) returns (Reply);
 
-    rpc ListTelecells (ListRequest) returns (stream List);
+    rpc List (ListRequest) returns (stream ListReply);
 
-    rpc SearchElements (lighting.location.FilterByLocationRequest) returns (stream Reply);
+    rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
 
     // TODO #10: add RPCs to create and update TCs.
 }
@@ -25,7 +25,7 @@ message ListRequest {
     int32 offset = 2;
 }
 
-message List {
+message ListReply {
     repeated Reply telecells = 1;
 }
 

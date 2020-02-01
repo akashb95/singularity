@@ -7,7 +7,7 @@ package user;
 import "ts.proto";
 
 service User {
-    rpc GetUser (Request) returns (Reply);
+    rpc Get (Request) returns (Reply);
 }
 
 message Request {

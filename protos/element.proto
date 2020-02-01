@@ -8,11 +8,11 @@ import "location.proto";
 import "asset.proto";
 
 service Element {
-    rpc GetElement (Request) returns (Reply);
+    rpc Get (Request) returns (Reply);
 
-    rpc ListElements (ListRequest) returns (stream List);
+    rpc List (ListRequest) returns (stream ListReply);
 
-    rpc SearchElements (lighting.location.FilterByLocationRequest) returns (stream Reply);
+    rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
 
     // TODO #9: add RPCs to create and update elements. This is practically the 'asset import' functionality.
 }
@@ -20,6 +20,10 @@ service Element {
 message ListRequest {
     int32 limit = 1;
     int32 offset = 2;
+}
+
+message ListReply {
+    repeated Reply elements = 1;
 }
 
 message Request {
@@ -41,10 +45,6 @@ message Reply {
 
     // where is this element?
     lighting.location.Location location = 15;
-}
-
-message List {
-    repeated lighting.element.Reply elements = 1;
 }
 
 enum ActivityStatus {

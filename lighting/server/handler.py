@@ -17,7 +17,7 @@ class ElementHandler(ElementServicer):
         self.db = sessionmaker(bind=engine)()
         return
 
-    def GetElement(self, request, context):
+    def Get(self, request, context):
         """
         Gets a single element by its unique id.
 
@@ -46,7 +46,7 @@ class ElementHandler(ElementServicer):
             description=element.description
         )
 
-    def ListElements(self, request, context):
+    def List(self, request, context):
         """
         Streams back lists of elements.
 
@@ -72,12 +72,12 @@ class ElementHandler(ElementServicer):
             )
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(elements) - 1:
-                reply_list = element_pb2.List()
+                reply_list = element_pb2.ListReply()
                 reply_list.elements.extend(replies)
                 replies = []
                 yield reply_list
 
-    def SearchElements(self, request, context):
+    def SearchByLocation(self, request, context):
         """
         Search for elements based on a map rectangle.
 
