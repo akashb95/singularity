@@ -27,8 +27,15 @@ message Request {
 
 message Reply {
     int32 id = 1;
+    ActivityStatus status = 2;
 }
 
 message ListReply {
     repeated Reply assets = 1;
+}
+
+enum ActivityStatus {
+    UNAVAILABLE = 0;
+    ACTIVE = 1;
+    DELETED = 15;
 }
