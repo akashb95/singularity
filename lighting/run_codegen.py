@@ -19,6 +19,7 @@ if __name__ == "__main__":
     protoc.main((
         '',
         '-I../protos',
+        '-I/usr/local/include',
         '--python_out={}'.format(generated_files_outdir),
         '--grpc_python_out={}'.format(generated_files_outdir),
         '../protos/asset.proto',
@@ -26,7 +27,6 @@ if __name__ == "__main__":
         '../protos/element.proto',
         '../protos/location.proto',
         '../protos/telecell.proto',
-        '../protos/ts.proto',
         '../protos/user.proto'
     ))
 

@@ -4,7 +4,7 @@ syntax = "proto3";
 
 package user;
 
-import "ts.proto";
+import "google/protobuf/timestamp.proto";
 
 service User {
     rpc Get (Request) returns (Reply);
@@ -24,7 +24,7 @@ message Reply {
     // pass in password through a hashing function before storing here
     string hashed_pass = 3;
     user.Role role = 4;
-    lighting.ts.Timestamp created = 5;
+    google.protobuf.Timestamp created = 5;
 }
 
 enum Role {

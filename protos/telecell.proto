@@ -5,7 +5,7 @@ syntax = "proto3";
 package lighting.telecell;
 
 import "location.proto";
-import "ts.proto";
+import "google/protobuf/timestamp.proto";
 import "element.proto";
 import "basestation.proto";
 import "asset.proto";
@@ -53,7 +53,7 @@ message Reply {
     ActivityStatus status = 5;
 
     // when was this TC's status last updated?
-    lighting.ts.Timestamp updated_at = 6;
+    google.protobuf.Timestamp updated_at = 6;
 
     // details of connected elements to this TC
     repeated lighting.element.Reply elements = 7;
@@ -69,4 +69,5 @@ enum ActivityStatus {
     UNAVAILABLE = 0;
     ACTIVE = 1;
     INACTIVE = 2;
+    DELETED = 15;
 }
