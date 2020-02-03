@@ -11,7 +11,7 @@ import "basestation.proto";
 import "asset.proto";
 
 service Telecell {
-    rpc GetTelecell (Request) returns (Reply);
+    rpc Get (Request) returns (Reply);
 
     rpc List (ListRequest) returns (stream ListReply);
 
