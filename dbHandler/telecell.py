@@ -6,7 +6,7 @@ from .basestation import Basestation
 
 
 class Telecell(Base):
-    __tablename__ = "telecells"
+    __tablename__ = "telecell"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(Integer, unique=True, nullable=False)

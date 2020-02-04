@@ -4,7 +4,7 @@ from dbHandler import Base
 
 
 class Basestation(Base):
-    __tablename__ = "basestations"
+    __tablename__ = "basestation"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(Integer, unique=True, nullable=False)

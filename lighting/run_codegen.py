@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
         # modify code in memory using regex
         # e.g: import location_pb2 as location__pb2  --->  from . import location_pb2 as location__pb2
-        code_modified_imports = re.sub("(import .*_pb2 as .*__pb2)", r"from . \1", code, flags=re.M)
+        code_modified_imports = re.sub("(^import .*_pb2 as .*__pb2)", r"from . \1", code, flags=re.M)
 
         # write to code file
         with open(os.path.join(abs_path_codegen_outdir, file), "w") as generated_file:

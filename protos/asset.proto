@@ -4,16 +4,18 @@ syntax = "proto3";
 
 package lighting.asset;
 
-import "location.proto";
+import "google/protobuf/empty.proto";
 
 service Asset {
     rpc Get (Request) returns (Reply);
 
     rpc List (ListRequest) returns (stream ListReply);
 
-    rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
+    rpc Create (Reply) returns (Reply);
 
-    // TODO #9: add RPCs to create and update assets. This is practically the 'asset import' functionality.
+    rpc Delete (Request) returns (Reply);
+
+    rpc Prune (Request) returns (google.protobuf.Empty);
 }
 
 message ListRequest {
@@ -28,6 +30,7 @@ message Request {
 message Reply {
     int32 id = 1;
     ActivityStatus status = 2;
+    string message = 15;
 }
 
 message ListReply {

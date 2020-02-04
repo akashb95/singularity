@@ -7,7 +7,7 @@ from .telecell import Telecell
 
 
 class Element(Base):
-    __tablename__ = "elements"
+    __tablename__ = "element"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     description = Column("description", String(100))

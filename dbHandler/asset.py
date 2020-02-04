@@ -4,7 +4,7 @@ from dbHandler import Base
 
 
 class Asset(Base):
-    __tablename__ = "assets"
+    __tablename__ = "asset"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     status = Column(Integer, default=1)
