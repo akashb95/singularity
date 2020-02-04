@@ -21,7 +21,7 @@ class Element(Base):
     # 1 element/lamp has 1 asset/lamppost
     asset_id = Column(Integer, ForeignKey("asset.id"), nullable=False)
     asset = relationship("Asset",
-                         backref=backref("Asset", cascade="merge, save-update, delete"))
+                         backref=backref("elements", cascade="merge, save-update, delete"))
 
     def __init__(self, description: str, latitude: float, longitude: float, status: int, asset, telecell=None):
         self.description = description
