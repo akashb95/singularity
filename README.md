@@ -29,7 +29,7 @@ Oh and there's gonna be pizza. And coke (BYO credit cards). Maybe a hipflask of 
 ## What's the idea? 💡
 In the time afforded to us, we can make a decent attempt at showcasing some of the key functionality within PLANet. After an informal discussion with Jon, it seems that the most important things people do with our hunk of software is check Daily Faults (what's gone wrong?? 🤢) and billing (how much am I shelling out _now_??? 🔥💸). 
 
-As we all know (but I'll provide some brief context anyway), PLANet codebase is totally monolithic. SQL commands are all over the place, the ExtJS is inextricably tied up with the PHP, and every little TALQ CMS has to do requires non-trivial and fiddly changes in the outmoded and obsolete DB.
+As we all know (but I'll provide some brief context anyway), PLANet codebase is totally monolithic. SQL commands are all over the place, the ExtJS is inextricably tied up with the PHP, and every little TALQ CMS requires non-trivial and fiddly changes in the outmoded and obsolete DB.
  
 The solution is quite simple: microservices 🎉. It keeps the separate components... well... Separate. In this way, everything that depends on the DB can be kept isolated from each other and doesn't have to interact with any PLANet code at all. It won't just clean up PLANet, but will provide a scalable and modular way to organise the entire business. 
 
