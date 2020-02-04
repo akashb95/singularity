@@ -36,6 +36,9 @@ message Reply {
     // activity status indicator
     ActivityStatus status = 4;
 
+    // message from server (just FYI kind of messages)
+    string message = 14;
+
     // where is this BS?
     lighting.location.Location location = 15;
 }

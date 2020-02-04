@@ -61,6 +61,9 @@ message Reply {
     // details of the asset this TC is connected to.
     lighting.asset.Reply asset = 8;
 
+    // message from server (just FYI kind of messages)
+    string message = 14;
+
     // where is this telecell? preferably the GPS coords...
     lighting.location.Location location = 15;
 }

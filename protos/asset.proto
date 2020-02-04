@@ -15,7 +15,7 @@ service Asset {
 
     rpc Delete (Request) returns (Reply);
 
-    rpc Prune (Request) returns (google.protobuf.Empty);
+    rpc Prune (Request) returns (Reply);
 }
 
 message ListRequest {
@@ -30,6 +30,8 @@ message Request {
 message Reply {
     int32 id = 1;
     ActivityStatus status = 2;
+
+    // message from server (just FYI kind of messages)
     string message = 15;
 }
 

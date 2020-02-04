@@ -43,6 +43,9 @@ message Reply {
     // details of the Asset that this element is connected to
     lighting.asset.Reply asset = 4;
 
+    // message from server (just FYI kind of messages)
+    string message = 14;
+
     // where is this element?
     lighting.location.Location location = 15;
 }
