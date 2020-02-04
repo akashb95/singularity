@@ -35,7 +35,14 @@ class AssetHandler(AssetServicer):
         if not asset:
             return asset_pb2.Reply()
 
-        return asset_pb2.Reply(id=asset.id)
+        # get UIDs of connected elements
+        element_uids = [element.id for element in asset.elements]
+
+        # populate reply message
+        asset = asset_pb2.Reply(id=asset.id, status=asset.status)
+        asset.element_uids.extend(element_uids)
+
+        return asset
 
     def List(self, request, context):
         """
@@ -62,11 +69,16 @@ class AssetHandler(AssetServicer):
 
         replies = []
 
-        for i, element in enumerate(assets):
-            replies.append(asset_pb2.Reply(id=element.id))
+        for i, asset in enumerate(assets):
+            # get UIDs of connected elements
+            element_uids = [element.id for element in asset.elements]
+
+            # populate reply message
+            replies.append(asset_pb2.Reply(id=asset.id, status=asset.status))
+            replies.extend(element_uids)
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(assets) - 1:
-                reply_list = element_pb2.ListReply()
+                reply_list = asset_pb2.ListReply()
                 reply_list.elements.extend(replies)
                 replies = []
                 yield reply_list
@@ -80,13 +92,13 @@ class AssetHandler(AssetServicer):
         :return:
         """
 
-        asset = Asset()
+        asset = Asset(request.status)
 
         self.db.add(asset)
         self.db.commit()
         self.db.refresh(asset)
 
-        return asset_pb2.Reply(asset.id)
+        return asset_pb2.Reply(id=asset.id, status=asset.status)
 
     def Delete(self, request, context):
         """
@@ -125,9 +137,13 @@ class AssetHandler(AssetServicer):
 
         self.logger.info(message)
 
-        return asset_pb2.Reply(id=deleted_asset.id,
-                               status=deleted_asset.status,
-                               message=message)
+        # populate reply message
+        asset = asset_pb2.Reply(id=deleted_asset.id,
+                                status=deleted_asset.status,
+                                message=message)
+        asset.element_uids.extend(deleted_elements)
+
+        return asset
 
     def Prune(self, request, context):
         """
@@ -146,10 +162,17 @@ class AssetHandler(AssetServicer):
         self.db.delete(asset_to_be_deleted)
 
         # ... Going.....
-        self.logger.warn("Permanently deleting Asset {} and associated Elements {}."
-                         .format(request.id, ", ".join(associated_element_ids)))
+        message = "Permanently deleting Asset {} and associated Elements {}." \
+            .format(request.id, ", ".join(associated_element_ids))
+        self.logger.warn(message)
 
         # ... Gone.
         self.db.commit()
 
-        return
+        # populate reply message
+        asset = asset_pb2.Reply(id=request.id,
+                                status=asset_pb2.ActivityStatus.Value("UNAVAILABLE"),
+                                message=message)
+        asset.element_uids.extend(associated_element_ids)
+
+        return asset

@@ -5,6 +5,7 @@ syntax = "proto3";
 package lighting.asset;
 
 import "google/protobuf/empty.proto";
+import "element.proto";
 
 service Asset {
     rpc Get (Request) returns (Reply);
@@ -30,6 +31,10 @@ message Request {
 message Reply {
     int32 id = 1;
     ActivityStatus status = 2;
+
+    // send UIDs of Elements connected to this asset.
+    // can't send element itself because that would introduce circular imports and gRPC throws up.
+    repeated int32 element_uids = 3;
 
     // message from server (just FYI kind of messages)
     string message = 15;
