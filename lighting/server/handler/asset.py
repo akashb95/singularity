@@ -1,14 +1,13 @@
 import logging
-from log import setup_logger
 
-import lighting.lib.element_pb2 as element_pb2
-from lighting.lib.asset_pb2_grpc import AssetServicer
-import lighting.lib.asset_pb2 as asset_pb2
-import lighting.lib.telecell_pb2 as telecell_pb2
-
-from dbHandler import Asset, engine
-import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
+
+import lighting.lib.asset_pb2 as asset_pb2
+import lighting.lib.element_pb2 as element_pb2
+import lighting.lib.telecell_pb2 as telecell_pb2
+from dbHandler import Asset, engine
+from lighting.lib.asset_pb2_grpc import AssetServicer
+from log import setup_logger
 
 
 class AssetHandler(AssetServicer):
@@ -138,7 +137,19 @@ class AssetHandler(AssetServicer):
         :return:
         """
 
-        self.db.query(Asset).filter(Asset.id == request.id).delete()
+        asset_to_be_deleted = self.db.query(Asset).get(Asset.id == request.id)
+
+        # just for logging
+        associated_element_ids = [element.id for element in asset_to_be_deleted.elements]
+
+        # Going....
+        self.db.delete(asset_to_be_deleted)
+
+        # ... Going.....
+        self.logger.warn("Permanently deleting Asset {} and associated Elements {}."
+                         .format(request.id, ", ".join(associated_element_ids)))
+
+        # ... Gone.
         self.db.commit()
 
         return
