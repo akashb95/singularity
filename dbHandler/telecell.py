@@ -20,7 +20,7 @@ class Telecell(Base):
     bs_id = Column(Integer, ForeignKey("basestation.id"))
     basestation = relationship(Basestation, backref=backref("telecells", uselist=True))
 
-    def __init__(self, uuid: int, relay: bool, latitude: float, longitude: float, basestation=None, status=None,
+    def __init__(self, uuid: int, relay: bool, latitude: float, longitude: float, basestation=None, status: int = None,
                  updated_at=None):
 
         self.uuid = uuid
