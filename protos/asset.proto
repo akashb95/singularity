@@ -4,15 +4,14 @@ syntax = "proto3";
 
 package lighting.asset;
 
-import "google/protobuf/empty.proto";
-import "element.proto";
-
 service Asset {
     rpc Get (Request) returns (Reply);
 
     rpc List (ListRequest) returns (stream ListReply);
 
     rpc Create (Reply) returns (Reply);
+
+    rpc Update (Reply) returns (Reply);
 
     rpc Delete (Request) returns (Reply);
 
