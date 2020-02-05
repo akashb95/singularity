@@ -14,7 +14,16 @@ service Element {
 
     rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
 
-    // TODO #9: add RPCs to create and update elements. This is practically the 'asset import' functionality.
+    rpc Create (CreateRequest) returns (ListReply);
+
+    rpc Update (Reply) returns (Reply);
+
+    rpc Delete (Request) returns (Reply);
+
+    rpc Prune (Request) returns (Reply);
+
+    rpc AddToAsset (Reply) returns (Reply);
+
 }
 
 message ListRequest {
@@ -41,17 +50,36 @@ message Reply {
     string description = 3;
 
     // details of the Asset that this element is connected to
-    lighting.asset.Reply asset = 4;
+    oneof asset_oneof {
+        lighting.asset.Reply asset = 4;
+        int32 asset_id = 5;
+    }
 
     // message from server (just FYI kind of messages)
-    string message = 14;
+    string message = 13;
 
     // where is this element?
-    lighting.location.Location location = 15;
+    oneof location_oneof {
+
+        // if setting a location, leave this unset - default value is False
+        bool no_location = 14;
+
+        // if no_location is False, then read this location. Else, leave this alone.
+        // Deals with edge case where there are elements at exactly (0, 0).
+        lighting.location.Location location = 15;
+    }
+}
+
+message CreateRequest {
+    // List of Element details.
+    repeated Reply elements = 1;
 }
 
 enum ActivityStatus {
+    // this is the status that can be changed by the server only
+    // a client CANNOT change the value to 0
     UNAVAILABLE = 0;
+
     ACTIVE = 1;
     INACTIVE = 2;
     DELETED = 15;
