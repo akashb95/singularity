@@ -48,7 +48,8 @@ def seed_lighting_components():
     for i in range(99):
         lat, long = uniform(-180, 180), uniform(-180, 180)
         asset = Asset()
-        element = Element("{} {}".format(description, i), lat, long, choice(status_choices), asset=asset)
+        element = Element(asset=asset, description="{} {}".format(description, i), latitude=lat, longitude=long,
+                          status=choice(status_choices))
         session.add(asset)
         session.add(element)
 
@@ -59,8 +60,8 @@ def seed_lighting_components():
         asset = Asset()
         telecell = Telecell(telecell_uuid, False, lat, long, choice(basestations))
         telecell_uuid += 1
-        element = Element("{} {}".format(description, i), lat, long, choice(status_choices), asset=asset,
-                          telecell=telecell)
+        element = Element(asset=asset, description="{} {}".format(description, i), latitude=lat, longitude=long,
+                          status=choice(status_choices), telecell=telecell)
         session.add(asset)
         session.add(element)
 
@@ -73,10 +74,10 @@ def seed_lighting_components():
         telecell_uuid += 1
         telecell_2 = Telecell(telecell_uuid, False, lat, long, choice(basestations))
         telecell_uuid += 1
-        element_1 = Element("{} {}".format(description, i), lat, long, choice(status_choices), asset=asset,
-                            telecell=telecell_1)
-        element_2 = Element("{} {}".format(description, i), lat, long, choice(status_choices), asset=asset,
-                            telecell=telecell_2)
+        element_1 = Element(asset=asset, description="{} {}".format(description, i), latitude=lat, longitude=long,
+                            status=choice(status_choices), telecell=telecell_1)
+        element_2 = Element(asset=asset, description="{} {}".format(description, i), latitude=lat, longitude=long,
+                            status=choice(status_choices), telecell=telecell_2)
         session.add(asset)
         session.add(telecell_1)
         session.add(element_1)
@@ -90,10 +91,10 @@ def seed_lighting_components():
         asset = Asset()
         telecell = Telecell(telecell_uuid, False, lat, long, choice(basestations))
         telecell_uuid += 1
-        element_1 = Element("{} {}".format(description, i), lat, long, choice(status_choices), asset=asset,
-                            telecell=telecell)
-        element_2 = Element("{} {}".format(description, i), lat, long, choice(status_choices), asset=asset,
-                            telecell=telecell)
+        element_1 = Element(asset=asset, description="{} {}".format(description, i), latitude=lat, longitude=long,
+                            status=choice(status_choices), telecell=telecell)
+        element_2 = Element(asset=asset, description="{} {}".format(description, i), latitude=lat, longitude=long,
+                            status=choice(status_choices), telecell=telecell)
         session.add(asset)
         session.add(telecell)
         session.add(element_2)

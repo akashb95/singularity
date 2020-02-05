@@ -9,10 +9,10 @@ class Element(Base):
     __tablename__ = "element"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column("description", String(100))
+    description = Column("description", String(100), default="")
     latitude = Column("latitude", Float, default=None)
     longitude = Column("longitude", Float, default=None)
-    status = Column("status", Integer, default=0, nullable=False)
+    status = Column("status", Integer, default=1, nullable=False)
 
     # each element can have a maximum one 1 telecell
     telecell_id = Column(Integer, ForeignKey("telecell.id"), nullable=True)
@@ -23,13 +23,20 @@ class Element(Base):
     asset = relationship("Asset",
                          backref=backref("elements", cascade="merge, save-update, delete"))
 
-    def __init__(self, description: str, latitude: float, longitude: float, status: int, asset, telecell=None):
-        self.description = description
-        self.latitude = latitude
-        self.longitude = longitude
-        self.status = status
+    def __init__(self, asset, description: str = None, latitude: float = None, longitude: float = None,
+                 status: int = None, telecell=None):
 
         self.asset = asset
+
+        if description is not None:
+            self.description = description
+
+        if latitude is not None and longitude is not None:
+            self.latitude = latitude
+            self.longitude = longitude
+
+        if self.status is not None:
+            self.status = status
 
         if telecell is not None:
             self.telecell = telecell
