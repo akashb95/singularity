@@ -35,14 +35,10 @@ class AssetHandler(AssetServicer):
         if not asset:
             return asset_pb2.Reply()
 
-        # get UIDs of connected elements
-        element_uids = [element.id for element in asset.elements]
-
         # populate reply message
-        asset = asset_pb2.Reply(id=asset.id, status=asset.status)
-        asset.element_uids.extend(element_uids)
+        asset_reply = self._prepare_asset_message(asset)
 
-        return asset
+        return asset_reply
 
     def List(self, request, context):
         """
@@ -70,12 +66,9 @@ class AssetHandler(AssetServicer):
         replies = []
 
         for i, asset in enumerate(assets):
-            # get UIDs of connected elements
-            element_uids = [element.id for element in asset.elements]
-
             # populate reply message
-            replies.append(asset_pb2.Reply(id=asset.id, status=asset.status))
-            replies.extend(element_uids)
+            asset_reply = self._prepare_asset_message(asset)
+            replies.append(asset_reply)
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(assets) - 1:
                 reply_list = asset_pb2.ListReply()
@@ -86,6 +79,8 @@ class AssetHandler(AssetServicer):
     def Create(self, request, context):
         """
         Creates new asset.
+
+        Does NOT create any Elements, or create associations to existing Elements.
 
         :param request:
         :param context:
@@ -98,7 +93,44 @@ class AssetHandler(AssetServicer):
         self.db.commit()
         self.db.refresh(asset)
 
+        context.set_details("Created Asset {} (status: {}). Note: no elements created/associated for/to this asset."
+                            .format(asset.id, asset_pb2.ActivityStatus.Name(asset.status)))
+
         return asset_pb2.Reply(id=asset.id, status=asset.status)
+
+    def Update(self, request, context):
+        """
+        Updates existing asset.
+
+        This method cannot be used to update any details of the child Elements that are connected to this Asset.
+        For example, we cannot associate/dissociate an Element to/from the Asset this method edits from this function.
+
+        :param request:
+        :param context:
+        :return:
+        """
+
+        asset = self.db.query(Asset).get(request.id)
+
+        # if no asset found
+        if not asset:
+            return asset_pb2.Reply()
+
+        if request.status:
+            asset.status = request.status
+
+        self.db.commit()
+
+        message = "Updated {} (status: {}). Note: no elements associations for this asset." \
+            .format(asset.id, asset_pb2.ActivityStatus.Name(asset.status))
+
+        self.logger.info(message)
+
+        # populate message
+        asset_reply = self._prepare_asset_message(asset, message)
+        context.set_details(message)
+
+        return asset_reply
 
     def Delete(self, request, context):
         """
@@ -138,12 +170,13 @@ class AssetHandler(AssetServicer):
         self.logger.info(message)
 
         # populate reply message
-        asset = asset_pb2.Reply(id=deleted_asset.id,
-                                status=deleted_asset.status,
-                                message=message)
-        asset.element_uids.extend(deleted_elements)
+        asset_reply = asset_pb2.Reply(id=deleted_asset.id,
+                                      status=deleted_asset.status,
+                                      message=message)
+        asset_reply.element_uids.extend(deleted_elements)
+        context.set_details(message)
 
-        return asset
+        return asset_reply
 
     def Prune(self, request, context):
         """
@@ -155,7 +188,7 @@ class AssetHandler(AssetServicer):
 
         asset_to_be_deleted = self.db.query(Asset).get(Asset.id == request.id)
 
-        # just for logging
+        # get associated elements before they disappear forever...
         associated_element_ids = [element.id for element in asset_to_be_deleted.elements]
 
         # Going....
@@ -174,5 +207,29 @@ class AssetHandler(AssetServicer):
                                 status=asset_pb2.ActivityStatus.Value("UNAVAILABLE"),
                                 message=message)
         asset.element_uids.extend(associated_element_ids)
+        context.set_details(message)
 
         return asset
+
+    @staticmethod
+    def _prepare_asset_message(asset: Asset, message: str = None) -> asset_pb2.Reply:
+        """
+
+        :param asset: {dbHandler.Asset}
+        :return:
+        """
+
+        # find elements for this asset and store their IDs
+        element_uids = [element.id for element in asset.elements]
+
+        # populate message
+        asset_reply = asset_pb2.Reply(id=asset.id,
+                                      status=asset.status)
+
+        if message is not None:
+            asset_reply.message = message
+
+        # put this asset's elements' IDs into the message too.
+        asset_reply.element_uids.extend(element_uids)
+
+        return asset_reply
