@@ -360,7 +360,7 @@ class ElementHandler(ElementServicer):
         return element_reply
 
     @staticmethod
-    def _set_location_oneof(element, element_reply):
+    def _set_location_oneof(element: Element, element_reply: element_pb2.Reply):
         """
         Checks if the element has non-null longitude and latitude, and sets Element.Reply.location_oneof accordingly.
 
@@ -380,7 +380,7 @@ class ElementHandler(ElementServicer):
         return element_reply
 
     @staticmethod
-    def _prepare_asset_message(element):
+    def _prepare_asset_message(element: Element):
         """
         Given an Element, prepare an Asset.Reply message which contains Asset's details.
 
