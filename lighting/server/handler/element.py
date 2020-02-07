@@ -1,5 +1,6 @@
 import logging
 
+import grpc
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
@@ -7,8 +8,6 @@ import lighting.lib.asset_pb2 as asset_pb2
 import lighting.lib.element_pb2 as element_pb2
 from dbHandler import Element, Asset, engine
 from lighting.lib.element_pb2_grpc import ElementServicer
-from lighting.lib.location_pb2 import Location
-from lighting.server.helpers import activity_status_mapper
 from log import setup_logger
 
 
@@ -43,7 +42,7 @@ class ElementHandler(ElementServicer):
         # get associated asset, and the elements that asset is connected to
         asset_reply = self._prepare_asset_message(element)
 
-        element_reply = element_pb2.Reply(id=element.id, status=activity_status,
+        element_reply = element_pb2.Reply(id=element.id, status=element.status,
                                           asset=asset_reply, description=element.description)
         element_reply = self._set_location_oneof(element, element_reply)
 
@@ -76,10 +75,11 @@ class ElementHandler(ElementServicer):
         replies = []
 
         for i, element in enumerate(elements):
+            asset_reply = self._prepare_asset_message(element)
             element_reply = element_pb2.Reply(
                 id=element.id,
-                status=activity_status_mapper(element.status),
-                asset=asset_pb2.Reply(id=element.asset.id),
+                status=element.status,
+                asset=asset_reply,
                 description=element.description)
             self._set_location_oneof(element, element_reply)
 
@@ -123,18 +123,17 @@ class ElementHandler(ElementServicer):
             .all()
 
         for element in elements:
-            activity_status = activity_status_mapper(element.status)
-            location = Location(lat=element.latitude, long=element.longitude)
-            asset = asset_pb2.Reply(id=element.asset.id)
-
-            # stream reply to client
-            yield element_pb2.Reply(
+            asset_reply = self._prepare_asset_message(element)
+            element_reply = element_pb2.Reply(
                 id=element.id,
-                status=activity_status,
-                location=location,
-                asset=asset,
+                status=element.status,
+                asset=asset_reply,
                 description=element.description
             )
+            element_reply = self._set_location_oneof(element, element_reply)
+
+            # stream reply to client
+            yield element_reply
 
     def Create(self, request, context):
         """
@@ -373,7 +372,8 @@ class ElementHandler(ElementServicer):
         """
 
         if element.longitude is not None and element.latitude is not None:
-            element_reply.location = Location(long=element.longitude, lat=element.latitude)
+            element_reply.location.long, element_reply.location.lat = element.longitude, element.latitude
+
         else:
             element_reply.no_location = True
 
