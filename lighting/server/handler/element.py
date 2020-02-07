@@ -34,10 +34,8 @@ class ElementHandler(ElementServicer):
 
         # if no element found
         if not element:
-            return element_pb2.Reply()
-
-        # if any of these fields empty, then gRPC will return the default value (0 for int, empty string for str, etc.)
-        activity_status = activity_status_mapper(element.status)
+            context.set_details("Element {} not found in system.".format(request.id))
+            return element_pb2.Reply(no_location=True)
 
         # get associated asset, and the elements that asset is connected to
         asset_reply = self._prepare_asset_message(element)
@@ -171,10 +169,15 @@ class ElementHandler(ElementServicer):
 
         # add new asset and new elements to session, and commit to DB.
         new_db_entries = [new_asset, *new_elements]
-        self.db.add(new_db_entries)
+        self.db.add_all(new_db_entries)
         self.db.commit()
         for entry in new_db_entries:
             self.db.refresh(entry)
+
+        element_ids = ", ".join(map(str, [element.id for element in new_elements]))
+        message = "Created Asset {} and Elements {}".format(new_asset.id, element_ids)
+        self.logger.info(message)
+        context.set_details(message)
 
         # populate reply message - asset will be the same for all new elements created by this RPC
         asset_reply = self._prepare_asset_message(new_elements[0])
@@ -213,28 +216,36 @@ class ElementHandler(ElementServicer):
             return element_pb2.Reply(id=request.id, message=message)
 
         # expecting either new asset ID (int) or an entire asset message.
-        if request.asset_id:
+        if request.asset_id != 0:
 
             # check asset exists
-            asset = self.db(Asset).get(request.asset_id)
+            asset = self.db.query(Asset).get(request.asset_id)
 
             if asset is None:
                 message = "Request to update Element {}'s Asset failed: " \
                           "Asset does not appear to exist!".format(request.asset_id)
+
                 self.logger.warn(message)
+
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                context.set_details(message)
                 return element_pb2.Reply(id=request.id, message=message)
 
             element.asset_id = request.asset_id
 
-        elif request.asset:
+        elif request.asset and request.asset.id != 0:
 
             # check asset exists
-            asset = self.db(Asset).get(request.asset.id)
+            asset = self.db.query(Asset).get(request.asset.id)
 
             if asset is None:
                 message = "Request to update Element {}'s Asset failed: " \
                           "Asset does not appear to exist!".format(request.asset.id)
+
                 self.logger.warn(message)
+
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+                context.set_details(message)
                 return element_pb2.Reply(id=request.id, message=message)
 
             element.asset = request.asset
@@ -246,9 +257,23 @@ class ElementHandler(ElementServicer):
         if request.description:
             element.description = request.description
 
-        if not request.location.no_location:
-            element.longitude = request.location.longitude
-            element.latitude = request.location.latitude
+        if not request.no_location:
+
+            # sanity checks
+            invalid = []
+            if not -180 <= request.location.long <= 180:
+                invalid = "longitude"
+
+            if not -180 <= request.location.lat <= 180:
+                invalid = "latitude"
+
+            if len(invalid) > 0:
+                invalid_arguments = "\n - ".join(invalid)
+                context.set_details("Invalid arguments:\n{}".format(invalid_arguments))
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+
+            element.longitude = request.location.long
+            element.latitude = request.location.lat
 
         self.db.commit()
 
@@ -276,7 +301,6 @@ class ElementHandler(ElementServicer):
         element = self.db.query(Element).get(request.id)
 
         if not element:
-            context.set_code(400)
             context.set_details("Element {} does not exist!".format(request.id))
             return element_pb2.Reply(id=request.id, no_location=True)
 
@@ -292,6 +316,10 @@ class ElementHandler(ElementServicer):
                                           description=element.description, asset=asset_reply)
         element_reply = self._set_location_oneof(element, element_reply)
 
+        message = "Set status of Element {} to DELETED (soft-deletion).".format(element.id)
+        self.logger.info(message)
+        context.set_details(message)
+
         return element_reply
 
     def Prune(self, request, context):
@@ -306,12 +334,16 @@ class ElementHandler(ElementServicer):
         element = self.db.query(Element).get(request.id)
 
         if not element:
-            context.set_code(400)
             context.set_details("Element {} does not exist!".format(request.id))
             return element_pb2.Reply(id=request.id, no_location=True)
 
+        message = "Deleted Element {} (permanently).".format(element.id)
+
         self.db.delete(element)
         self.db.commit()
+
+        self.logger.info(message)
+        context.set_details(message)
 
         return element_pb2.Reply(id=request.id, no_location=True)
 
@@ -331,7 +363,7 @@ class ElementHandler(ElementServicer):
         element = self.db.query(Element).get(request.id)
 
         if not element:
-            context.set_code(400)
+            context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("Element {} does not exist!".format(request.id))
             return element_pb2.Reply(id=request.id, no_location=True, asset_id=request.asset_id)
 
@@ -339,13 +371,19 @@ class ElementHandler(ElementServicer):
         asset = self.db.query(Asset).get(request.asset_id)
 
         if not asset:
-            context.set_code(400)
+            context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("Asset {} does not exist!".format(request.asset_id))
             return element_pb2.Reply(id=request.id, no_location=True, asset_id=request.asset_id)
 
         # associate element to asset and commit changes to DB
+        old_element_asset_id = element.asset.id  # for logging
         element.asset = asset
         self.db.commit()
+
+        message = "Added Element {} to Asset {}, dissociated from Asset {}" \
+            .format(element.id, element.asset.id, old_element_asset_id)
+        self.logger.info(message)
+        context.set_details(message)
 
         # prepare asset message
         asset_reply = self._prepare_asset_message(element)
