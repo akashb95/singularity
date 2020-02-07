@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, Float, Boolean, DateTime, ForeignKey, fu
 from sqlalchemy.orm import relationship, backref
 
 from dbHandler import Base
+from lighting.lib import telecell_pb2
 from .basestation import Basestation
 
 
@@ -13,7 +14,7 @@ class Telecell(Base):
     relay = Column(Boolean)
     latitude = Column(Float)
     longitude = Column(Float)
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=telecell_pb2.ActivityStatus.Value("INACTIVE"))
     updated_at = Column(DateTime, nullable=False, default=func.utc_timestamp())
 
     # a telecell has 1 basestation at a time, but each basestation is connected to multiple telecells

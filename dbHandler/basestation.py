@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Float
 
 from dbHandler import Base
+from lighting.lib import basestation_pb2
 
 
 class Basestation(Base):
@@ -11,7 +12,7 @@ class Basestation(Base):
     version = Column(Integer, nullable=False, default=3)
     latitude = Column(Float)
     longitude = Column(Float)
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=basestation_pb2.ActivityStatus.Value("INACTIVE"))
 
     def __init__(self, uuid: int, version: int, latitude: float = None, longitude: float = None, status: int = None):
         self.uuid = uuid

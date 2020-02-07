@@ -162,10 +162,10 @@ class ElementHandler(ElementServicer):
                                       longitude=element.location.longitude)
 
             # don't let the user set status to 0, as this is the default zero value
-            if request.status != 0:
-                new_element.status = request.status
+            if element.status != element_pb2.ActivityStatus.Value("UNAVAILABLE"):
+                new_element.status = element.status
             else:
-                new_element.status = 1
+                new_element.status = element_pb2.ActivityStatus.Value("INACTIVE")
 
             new_elements.append(new_element)
 

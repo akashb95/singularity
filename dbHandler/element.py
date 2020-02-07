@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Integer, Float, ForeignKey
 from sqlalchemy.orm import relationship, backref
 
 from dbHandler import Base
+from lighting.lib import element_pb2
 from .telecell import Telecell
 
 
@@ -12,7 +13,7 @@ class Element(Base):
     description = Column("description", String(100), default="")
     latitude = Column("latitude", Float, default=None)
     longitude = Column("longitude", Float, default=None)
-    status = Column("status", Integer, default=1, nullable=False)
+    status = Column("status", Integer, default=element_pb2.ActivityStatus.Value("INACTIVE"), nullable=False)
 
     # each element can have a maximum one 1 telecell
     telecell_id = Column(Integer, ForeignKey("telecell.id"), nullable=True)
