@@ -46,5 +46,6 @@ message ListReply {
 enum ActivityStatus {
     UNAVAILABLE = 0;
     ACTIVE = 1;
+    INACTIVE = 2;
     DELETED = 15;
 }
