@@ -72,7 +72,7 @@ class AssetHandler(AssetServicer):
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(assets) - 1:
                 reply_list = asset_pb2.ListReply()
-                reply_list.elements.extend(replies)
+                reply_list.assets.extend(replies)
                 replies = []
                 yield reply_list
 
@@ -87,14 +87,19 @@ class AssetHandler(AssetServicer):
         :return:
         """
 
-        asset = Asset(request.status)
+        # don't let user define status as default zero value.
+        # if user does send in 0, then let DB row store default value defined in dbHandler.
+        status = request.status if request != 0 else None
+        asset = Asset(status)
 
         self.db.add(asset)
         self.db.commit()
         self.db.refresh(asset)
 
-        context.set_details("Created Asset {} (status: {}). Note: no elements created/associated for/to this asset."
-                            .format(asset.id, asset_pb2.ActivityStatus.Name(asset.status)))
+        message = "Created Asset {} (status: {}). Note: no elements created/associated for/to this asset." \
+            .format(asset.id, asset_pb2.ActivityStatus.Name(asset.status))
+        self.logger.info(message)
+        context.set_details(message)
 
         return asset_pb2.Reply(id=asset.id, status=asset.status)
 
@@ -121,7 +126,7 @@ class AssetHandler(AssetServicer):
 
         self.db.commit()
 
-        message = "Updated {} (status: {}). Note: no elements associations for this asset." \
+        message = "Updated {} (status: {}). Note: no elements associations modified for this asset." \
             .format(asset.id, asset_pb2.ActivityStatus.Name(asset.status))
 
         self.logger.info(message)
@@ -165,7 +170,9 @@ class AssetHandler(AssetServicer):
         self.db.refresh(deleted_asset)
 
         message = "Deleted Asset {}; Deleted Elements {}; Deleted Telecells {}" \
-            .format(deleted_asset.id, ", ".join(deleted_elements), ", ".join(deleted_telecells))
+            .format(deleted_asset.id,
+                    ", ".join(map(str, deleted_elements)),
+                    ", ".join(map(str, deleted_telecells)))
 
         self.logger.info(message)
 
@@ -186,7 +193,12 @@ class AssetHandler(AssetServicer):
         :return:
         """
 
-        asset_to_be_deleted = self.db.query(Asset).get(Asset.id == request.id)
+        asset_to_be_deleted = self.db.query(Asset).get(request.id)
+
+        if not asset_to_be_deleted:
+            message = "Asset {} does not exist in system!".format(request.id)
+            context.set_details(message)
+            return asset_pb2.Reply(message=message)
 
         # get associated elements before they disappear forever...
         associated_element_ids = [element.id for element in asset_to_be_deleted.elements]
@@ -196,7 +208,7 @@ class AssetHandler(AssetServicer):
 
         # ... Going.....
         message = "Permanently deleting Asset {} and associated Elements {}." \
-            .format(request.id, ", ".join(associated_element_ids))
+            .format(request.id, ", ".join(map(str, associated_element_ids)))
         self.logger.warn(message)
 
         # ... Gone.
