@@ -30,7 +30,7 @@ class UserHandler(UserServicer):
             user = self.db.query(User).get(request.id)
 
         elif request.username:
-            user = self.db.query(User).filter(User.username == request.username)
+            user = self.db.query(User).filter(User.username == request.username).first()
 
         else:
             user = None
@@ -80,14 +80,14 @@ class UserHandler(UserServicer):
             role = request.role
 
         user = User(username=request.username, hashed_pass=request.hashed_pass, role=role)
+        self.db.add(user)
         self.db.commit()
-        self.db.refresh(user)
 
         user_message = user_pb2.Reply(id=user.id,
                                       username=user.username,
                                       hashed_pass=user.hashed_pass,
                                       role=user.role)
-        user_message.created = int(user.created.replace(tzinfo=timezone.utc).timestamp())
+        user_message.created.seconds = int(user.created.replace(tzinfo=timezone.utc).timestamp())
 
         return user_message
 
@@ -95,7 +95,7 @@ class UserHandler(UserServicer):
         """
         Updates User details.
 
-        Request needs to have user ID, as the user's username is changeable.
+        Must provide User ID because username is changeable.
 
         :param request:
         :param context:
@@ -157,11 +157,20 @@ class UserHandler(UserServicer):
         if request.id:
             user = self.db.query(User).get(request.id)
 
+        elif request.username:
+            user = self.db.query(User).filter(User.username == request.username).first()
+
         else:
             user = None
 
         if not user:
-            message = "Could not find User with ID {}".format(request.id)
+            if request.id:
+                message = "Could not find User with ID {}".format(request.id)
+            elif request.username:
+                message = "Could not find User with username {}".format(request.username)
+            else:
+                message = "Expected to have User ID or username -- none passed in as params in procedure call."
+
             context.set_details(message)
             return user_pb2.Reply()
 
@@ -169,10 +178,10 @@ class UserHandler(UserServicer):
 
         # create message before details deleted...
         user_message = user_pb2.Reply(id=user.id, username=user.username,
-                                      hashed_pass=user.hashed_pass, role=user.role)
+                                      hashed_pass=user.hashed_pass, role=user_pb2.Role.Value("UNAVAILABLE"))
         user_message.created.seconds = int(user.created.replace(tzinfo=timezone.utc).timestamp())
 
-        self.db.delete(user.id)
+        self.db.delete(user)
         self.db.commit()
 
         self.logger.info(message)
