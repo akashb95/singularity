@@ -1,4 +1,5 @@
 import logging
+from datetime import timezone
 
 from sqlalchemy.orm import sessionmaker
 
@@ -57,8 +58,8 @@ class UserHandler(UserServicer):
         user_message = user_pb2.Reply(id=user.id,
                                       username=user.username,
                                       hashed_pass=user.hashed_pass,
-                                      role=user.role,
-                                      created=user.created)
+                                      role=user.role)
+        user_message.created.seconds = int(user.created.replace(tzinfo=timezone.utc).timestamp())
 
         return user_message
 
@@ -85,8 +86,8 @@ class UserHandler(UserServicer):
         user_message = user_pb2.Reply(id=user.id,
                                       username=user.username,
                                       hashed_pass=user.hashed_pass,
-                                      role=user.role,
-                                      created=user.created)
+                                      role=user.role)
+        user_message.created = int(user.created.replace(tzinfo=timezone.utc).timestamp())
 
         return user_message
 
@@ -138,8 +139,8 @@ class UserHandler(UserServicer):
             id=user.id,
             username=user.username,
             hashed_pass=user.hashed_pass,
-            role=user.role,
-            created=user.created)
+            role=user.role)
+        user_message.created.seconds = int(user.created.replace(tzinfo=timezone.utc).timestamp())
 
         return user_message
 
@@ -168,8 +169,8 @@ class UserHandler(UserServicer):
 
         # create message before details deleted...
         user_message = user_pb2.Reply(id=user.id, username=user.username,
-                                      hashed_pass=user.hashed_pass, role=user.role,
-                                      created=user.created)
+                                      hashed_pass=user.hashed_pass, role=user.role)
+        user_message.created.seconds = int(user.created.replace(tzinfo=timezone.utc).timestamp())
 
         self.db.delete(user.id)
         self.db.commit()
