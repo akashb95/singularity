@@ -8,7 +8,10 @@ import lighting.lib.element_pb2 as element_pb2
 import lighting.lib.location_pb2 as location_pb2
 import settings as lighting_settings
 from lighting.lib.asset_pb2_grpc import AssetStub
+from lighting.lib.basestation_pb2_grpc import BasestationStub
 from lighting.lib.element_pb2_grpc import ElementStub
+from lighting.lib.telecell_pb2_grpc import TelecellStub
+from lighting.lib.user_pb2_grpc import UserStub
 from log import setup_logger
 
 logger = setup_logger("client", logging.DEBUG)
@@ -102,6 +105,7 @@ def run(port: int):
                         element_pb2.ActivityStatus.Name(resp.status),
                         resp.description))
 
+    # Asset stub
     asset_stub = AssetStub(channel)
     message = asset_pb2.Request(id=4)
     asset = asset_stub.Get(message)
@@ -136,7 +140,17 @@ def run(port: int):
     response, call = asset_stub.Prune.with_call(message)
     logger.info(call.details())
 
-    # TODO #6: create stubs for Basestation, Telecell and User, and test those endpoints too.
+    # User stub
+    user_stub = UserStub(channel)
+    # TODO #12: Test UserHandler
+
+    # Basestation stub
+    basestation_stub = BasestationStub(channel)
+    # TODO #11: Test BasestationHandler
+
+    # Telecell stub
+    tc_stub = TelecellStub(channel)
+    # TODO #10: Test TelecellHandler
 
     # close channel.
     channel.close()
