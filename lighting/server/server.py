@@ -1,15 +1,15 @@
 import logging
-from log import setup_logger
-
 import os
 from concurrent import futures
-import settings as lighting_settings
 from multiprocessing import cpu_count
 
 import grpc
 
+import settings as lighting_settings
+from lighting.lib.asset_pb2_grpc import add_AssetServicer_to_server
 from lighting.lib.element_pb2_grpc import add_ElementServicer_to_server
-from lighting.server.handler import ElementHandler
+from lighting.server.handler import ElementHandler, AssetHandler
+from log import setup_logger
 
 logger = setup_logger("server", logging.DEBUG)
 
@@ -26,6 +26,7 @@ def serve(port: int):
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=num_cpus))
     add_ElementServicer_to_server(ElementHandler(), server)
+    add_AssetServicer_to_server(AssetHandler(), server)
     server.add_insecure_port('[::]:{}'.format(port))
     logger.debug("Listening on port {}".format(port))
 
