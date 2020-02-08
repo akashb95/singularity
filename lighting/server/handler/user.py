@@ -12,7 +12,7 @@ class UserHandler(UserServicer):
 
     def __init__(self):
         self.db = sessionmaker(bind=engine)()
-        self.logger = setup_logger("telecellHandler", logging.DEBUG)
+        self.logger = setup_logger("userHandler", logging.DEBUG)
         return
 
     def Get(self, request, context):

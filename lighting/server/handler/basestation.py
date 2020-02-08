@@ -12,7 +12,7 @@ class BasestationHandler(BasestationServicer):
 
     def __init__(self):
         self.db = sessionmaker(bind=engine)()
-        self.logger = setup_logger("telecellHandler", logging.DEBUG)
+        self.logger = setup_logger("basestationHandler", logging.DEBUG)
         return
 
     def Get(self, request, context):

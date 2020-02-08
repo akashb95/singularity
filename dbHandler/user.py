@@ -9,7 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(25), nullable=False, unique=True)
     hashed_pass = Column(String(200), nullable=False)
-    role = Column(Integer, nullable=False, default=0)
+    role = Column(Integer, nullable=False, default=2)
     created = Column(DateTime, default=func.utc_timestamp(), nullable=False)
 
     def __init__(self, username, hashed_pass, role):
