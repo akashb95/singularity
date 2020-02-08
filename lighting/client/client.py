@@ -3,9 +3,11 @@ import os
 
 import grpc
 
+import lighting.lib.asset_pb2 as asset_pb2
 import lighting.lib.element_pb2 as element_pb2
 import lighting.lib.location_pb2 as location_pb2
 import settings as lighting_settings
+from lighting.lib.asset_pb2_grpc import AssetStub
 from lighting.lib.element_pb2_grpc import ElementStub
 from log import setup_logger
 
@@ -20,7 +22,7 @@ def run(port: int):
     :return:
     """
 
-    # make channel. Possible using Context Manager too.
+    # # make channel. Possible using Context Manager too.
     channel = grpc.insecure_channel('localhost:{}'.format(port))
 
     stub = ElementStub(channel)
@@ -100,11 +102,44 @@ def run(port: int):
                         element_pb2.ActivityStatus.Name(resp.status),
                         resp.description))
 
+    asset_stub = AssetStub(channel)
+    message = asset_pb2.Request(id=4)
+    asset = asset_stub.Get(message)
+    logger.info("Asset {}, with Elements {}."
+                .format(asset.id, ", ".join(map(str, asset.element_uids))))
+
+    # get Assets list
+    message = asset_pb2.ListRequest(limit=150, offset=3)
+    response_all = asset_stub.List(message)
+    for resp_list in response_all:
+        for asset in resp_list.assets:
+            logger.info("Asset {}, status: {}, with Elements {}."
+                        .format(asset.id, asset.status, ", ".join(map(str, asset.element_uids))))
+
+    # create Asset
+    message = asset_pb2.Reply(status=asset_pb2.ActivityStatus.Value("ACTIVE"))
+    response = asset_stub.Create(message)
+    logger.info("Created Asset {}, status: {}.".format(response.id, response.status))
+
+    # Update Asset
+    message = asset_pb2.Reply(id=300, status=asset_pb2.ActivityStatus.Value("INACTIVE"))
+    response = asset_stub.Update(message)
+    logger.info(response.message)
+
+    # Soft-delete an asset
+    message = asset_pb2.Request(id=499)
+    response = asset_stub.Delete(message)
+    logger.info(response.message)
+
+    # Permanently delete an asset and associated telecells
+    message = asset_pb2.Request(id=499)
+    response = asset_stub.Prune(message)
+    logger.info(response.message)
+
+    # TODO #6: create stubs for Basestation, Telecell and User, and test those endpoints too.
+
     # close channel.
     channel.close()
-
-    # TODO #6: create channels with stubs for Basestation, Asset, Telecell and User, and test those endpoints too.
-
     return
 
 
