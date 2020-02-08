@@ -8,6 +8,12 @@ import "google/protobuf/timestamp.proto";
 
 service User {
     rpc Get (Request) returns (Reply);
+
+    rpc Create (Request) returns (Reply);
+
+    rpc Update (Reply) returns (Reply);
+
+    rpc Delete (Request) returns (Reply);
 }
 
 message Request {
