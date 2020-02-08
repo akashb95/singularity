@@ -110,7 +110,7 @@ def seed_users(n):
     from dbHandler import User
     from random import randint, choice
     session = sessionmaker(bind=engine)()
-    roles = [i for i in range(4)]
+    roles = [i for i in range(2, 9, 2)]
 
     for i in range(n):
         username = "telensa-{}".format(str(randint(0, 100000)))
