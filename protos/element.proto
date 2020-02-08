@@ -55,9 +55,6 @@ message Reply {
         int32 asset_id = 5;
     }
 
-    // message from server (just FYI kind of messages)
-    string message = 13;
-
     // where is this element?
     oneof location_oneof {
 

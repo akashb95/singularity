@@ -122,19 +122,19 @@ def run(port: int):
     logger.info("Created Asset {}, status: {}.".format(response.id, response.status))
 
     # Update Asset
-    message = asset_pb2.Reply(id=300, status=asset_pb2.ActivityStatus.Value("INACTIVE"))
-    response = asset_stub.Update(message)
-    logger.info(response.message)
+    message = asset_pb2.Reply(id=301, status=asset_pb2.ActivityStatus.Value("INACTIVE"))
+    response, call = asset_stub.Update.with_call(message)
+    logger.info(call.details())
 
     # Soft-delete an asset
     message = asset_pb2.Request(id=499)
-    response = asset_stub.Delete(message)
-    logger.info(response.message)
+    response, call = asset_stub.Delete.with_call(message)
+    logger.info(call.details())
 
     # Permanently delete an asset and associated telecells
     message = asset_pb2.Request(id=499)
-    response = asset_stub.Prune(message)
-    logger.info(response.message)
+    response, call = asset_stub.Prune.with_call(message)
+    logger.info(call.details())
 
     # TODO #6: create stubs for Basestation, Telecell and User, and test those endpoints too.
 

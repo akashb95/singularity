@@ -15,6 +15,12 @@ service Basestation {
     rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
 
     // TODO: add more RPCs here to create and update Basestations
+
+    rpc Create (Reply) returns (Reply)
+
+    rpc Update (Reply) returns (Reply)
+
+    rpc Delete (Request) returns (Reply)
 }
 message Request {
     oneof unique_identifier {
@@ -35,9 +41,6 @@ message Reply {
 
     // activity status indicator
     ActivityStatus status = 4;
-
-    // message from server (just FYI kind of messages)
-    string message = 14;
 
     // where is this BS?
     lighting.location.Location location = 15;

@@ -34,9 +34,6 @@ message Reply {
     // send UIDs of Elements connected to this asset.
     // can't send element itself because that would introduce circular imports and gRPC throws up.
     repeated int32 element_uids = 3;
-
-    // message from server (just FYI kind of messages)
-    string message = 15;
 }
 
 message ListReply {
