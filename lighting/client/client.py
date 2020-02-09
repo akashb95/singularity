@@ -3,13 +3,9 @@ import os
 
 import grpc
 
-import lighting.lib.asset_pb2 as asset_pb2
-import lighting.lib.element_pb2 as element_pb2
-import lighting.lib.location_pb2 as location_pb2
+import lighting.lib.user_pb2 as user_pb2
 import settings as lighting_settings
-from lighting.lib.asset_pb2_grpc import AssetStub
 from lighting.lib.basestation_pb2_grpc import BasestationStub
-from lighting.lib.element_pb2_grpc import ElementStub
 from lighting.lib.telecell_pb2_grpc import TelecellStub
 from lighting.lib.user_pb2_grpc import UserStub
 from log import setup_logger
@@ -142,7 +138,30 @@ def run(port: int):
 
     # User stub
     user_stub = UserStub(channel)
-    # TODO #12: Test UserHandler
+
+    # Get a user
+    message = user_pb2.Request(id=1)
+    user = user_stub.Get(message)
+    logger.info("User {} (ID: {}) has role {}"
+                .format(user.username, user.id, user_pb2.Role.Name(user.role)))
+
+    # Create User
+    message = user_pb2.Reply(username="telensa-ab", hashed_pass="potato", role=user_pb2.Role.Value("ADMIN"))
+    user = user_stub.Create(message)
+    logger.info("User {} (ID: {}) has role {}"
+                .format(user.username, user.id, user_pb2.Role.Name(user.role)))
+
+    # Update User record
+    message = user_pb2.Reply(id=1, username="telensa-nu", role=6)
+    user = user_stub.Update(message)
+    logger.info("User {} (ID: {}) has role {}"
+                .format(user.username, user.id, user_pb2.Role.Name(user.role)))
+
+    # Delete User record
+    message = user_pb2.Request(username="telensa-ab")
+    user = user_stub.Delete(message)
+    logger.info("Deleted || User {} (ID: {}) has role {}"
+                .format(user.username, user.id, user_pb2.Role.Name(user.role)))
 
     # Basestation stub
     basestation_stub = BasestationStub(channel)

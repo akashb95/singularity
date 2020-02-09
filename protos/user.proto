@@ -9,7 +9,7 @@ import "google/protobuf/timestamp.proto";
 service User {
     rpc Get (Request) returns (Reply);
 
-    rpc Create (Request) returns (Reply);
+    rpc Create (Reply) returns (Reply);
 
     rpc Update (Reply) returns (Reply);
 
@@ -17,7 +17,7 @@ service User {
 }
 
 message Request {
-    oneof user_id {
+    oneof user {
         int32 id = 1;
         string username = 2;
     }
@@ -34,8 +34,9 @@ message Reply {
 }
 
 enum Role {
-    ADMIN = 0;
-    DEV = 1;
-    MANAGER = 2;
-    USER = 3;
+    UNAVAILABLE = 0;
+    ADMIN = 2;
+    DEV = 4;
+    MANAGER = 6;
+    USER = 8;
 }
