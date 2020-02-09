@@ -14,9 +14,13 @@ class Basestation(Base):
     longitude = Column(Float)
     status = Column(Integer, default=basestation_pb2.ActivityStatus.Value("INACTIVE"))
 
-    def __init__(self, uuid: int, version: int, latitude: float = None, longitude: float = None, status: int = None):
+    def __init__(self, uuid: int, version: int = None, latitude: float = None, longitude: float = None,
+                 status: int = None):
+
         self.uuid = uuid
-        self.version = version
+
+        if version:
+            self.version = version
 
         if latitude and longitude:
             self.latitude = latitude

@@ -18,7 +18,7 @@ class Telecell(Base):
     updated_at = Column(DateTime, nullable=False, default=func.utc_timestamp())
 
     # a telecell has 1 basestation at a time, but each basestation is connected to multiple telecells
-    bs_id = Column(Integer, ForeignKey("basestation.id"))
+    bs_id = Column(Integer, ForeignKey("basestation.id"), nullable=True)
     basestation = relationship(Basestation, backref=backref("telecells", uselist=True))
 
     def __init__(self, uuid: int, relay: bool, latitude: float, longitude: float, basestation=None, status: int = None,
