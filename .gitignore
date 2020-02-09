@@ -1,3 +1,5 @@
 /venv/
 /.env
 /lighting/lib/
+/log/__pycache__/
+
