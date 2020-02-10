@@ -62,7 +62,7 @@ message Reply {
         bool no_location = 14;
 
         // if no_location is False, then read this location. Else, leave this alone.
-        // Deals with edge case where there are elements at exactly (0, 0).
+        // Deals with edge case where there are elements at exactly (0, 0), (x, 0) and (0, y).
         lighting.location.Location location = 15;
     }
 }
