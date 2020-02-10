@@ -275,6 +275,9 @@ class ElementHandler(ElementServicer):
             element.longitude = request.location.long
             element.latitude = request.location.lat
 
+        if request.no_location:
+            element.longitude, element.latitude = None, None
+
         self.db.commit()
 
         # prepare asset message
