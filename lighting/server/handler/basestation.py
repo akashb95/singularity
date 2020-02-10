@@ -19,6 +19,7 @@ class BasestationHandler(BasestationServicer):
 
     def Get(self, request, context):
         """
+        Get a Basestation by its ID or UUID.
 
         :param request:
         :param context:
@@ -53,6 +54,7 @@ class BasestationHandler(BasestationServicer):
 
     def List(self, request, context):
         """
+        Get a list of Basestations.
 
         :param request:
         :param context:
@@ -81,7 +83,7 @@ class BasestationHandler(BasestationServicer):
             if len(replies) == self.MAX_LIST_SIZE or i == len(basestations) - 1:
                 # populate outgoing message
                 bs_reply_list = bs_pb2.ListReply()
-                bs_reply_list.elements.extend(replies)
+                bs_reply_list.basestations.extend(replies)
 
                 # reset list for next batch of messages that'll go in the next stream
                 replies = []
@@ -93,6 +95,7 @@ class BasestationHandler(BasestationServicer):
 
     def SearchByLocation(self, request, context):
         """
+        Get list of Basestations located within a rectangular area on the map.
 
         :param request:
         :param context:
@@ -123,6 +126,7 @@ class BasestationHandler(BasestationServicer):
 
     def Create(self, request, context):
         """
+        Create a new Basestation.
 
         :param request:
         :param context:
@@ -137,8 +141,8 @@ class BasestationHandler(BasestationServicer):
         new_bs = Basestation(request.uuid)
 
         if not request.no_location:
-            new_bs.latitude = request.location.latitude
-            new_bs.longitude = request.location.longitude
+            new_bs.latitude = request.location.lat
+            new_bs.longitude = request.location.long
 
         self.db.add(new_bs)
         self.db.commit()
@@ -150,6 +154,9 @@ class BasestationHandler(BasestationServicer):
 
     def Update(self, request, context):
         """
+        Update details on an existing Basestation.
+
+        Note that Basestation ID and UUID can NOT be changed.
 
         :param request:
         :param context:
@@ -189,8 +196,10 @@ class BasestationHandler(BasestationServicer):
             bs.status = request.status
 
         if not request.no_location and request.location:
-            bs.latitude = request.location.latitude
-            bs.longitude = request.location.longitude
+            bs.latitude, bs.longitude = request.location.lat, request.location.long
+
+        elif request.no_location:
+            bs.latitude, bs.longitude = None, None
 
         self.db.commit()
 
@@ -204,6 +213,7 @@ class BasestationHandler(BasestationServicer):
 
     def Delete(self, request, context):
         """
+        Soft delete a basestation by changing its status to the appropriate value.
 
         :param request:
         :param context:
@@ -244,6 +254,9 @@ class BasestationHandler(BasestationServicer):
 
     def Prune(self, request, context):
         """
+        Permanently delete record of basestation from the DB.
+
+        As the basestation.id column is a FK on the Telecell, the telecells that have this BS's ID become NULL.
 
         :param request:
         :param context:
@@ -303,6 +316,6 @@ class BasestationHandler(BasestationServicer):
             bs_reply.no_location = True
 
         else:
-            bs_reply.location.latitude, bs_reply.location.longitude = basestation.latitude, basestation.longitude
+            bs_reply.location.lat, bs_reply.location.long = basestation.latitude, basestation.longitude
 
         return bs_reply
