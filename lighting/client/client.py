@@ -3,9 +3,15 @@ import os
 
 import grpc
 
+import lighting.lib.asset_pb2 as asset_pb2
+import lighting.lib.basestation_pb2 as bs_pb2
+import lighting.lib.element_pb2 as element_pb2
+import lighting.lib.location_pb2 as location_pb2
 import lighting.lib.user_pb2 as user_pb2
 import settings as lighting_settings
+from lighting.lib.asset_pb2_grpc import AssetStub
 from lighting.lib.basestation_pb2_grpc import BasestationStub
+from lighting.lib.element_pb2_grpc import ElementStub
 from lighting.lib.telecell_pb2_grpc import TelecellStub
 from lighting.lib.user_pb2_grpc import UserStub
 from log import setup_logger
@@ -164,8 +170,56 @@ def run(port: int):
                 .format(user.username, user.id, user_pb2.Role.Name(user.role)))
 
     # Basestation stub
-    basestation_stub = BasestationStub(channel)
-    # TODO #11: Test BasestationHandler
+    bs_stub = BasestationStub(channel)
+
+    # Get a BS
+    message = bs_pb2.Request(id=3)
+    bs = bs_stub.Get(message)
+    logger.info("Basestation {} (UUID: {}) is at ({}, {}) and has status {}."
+                .format(bs.id, bs.uuid, bs.location.long, bs.location.lat, bs_pb2.ActivityStatus.Name(bs.status)))
+
+    # Create BS
+    location = location_pb2.Location(lat=12, long=123)
+    message = bs_pb2.Reply(uuid=12346, location=location, version=4)
+    bs = bs_stub.Create(message)
+    logger.info("Created Basestation {} (UUID: {}) is at ({}, {}) and has status {}."
+                .format(bs.id, bs.uuid, bs.location.long, bs.location.lat, bs_pb2.ActivityStatus.Name(bs.status)))
+
+    # Search BS by location
+    map_rectangle = location_pb2.MapRect(lo=location_pb2.Location(long=0, lat=0),
+                                         hi=location_pb2.Location(long=100, lat=129))
+    search_response = bs_stub.SearchByLocation(location_pb2.FilterByLocationRequest(rectangle=map_rectangle))
+
+    # need to iterate over all returned replies before channel is closed
+    for bs in search_response:
+        logger.info("Basestation {} (UUID: {}) is at ({}, {}), and has status: {}\n"
+                    .format(bs.id, bs.uuid, bs.location.long, bs.location.lat, bs.status))
+
+    # List all basestations
+    response_all = bs_stub.List(bs_pb2.ListRequest(limit=100, offset=1))
+    for i, resp_list in enumerate(response_all):
+        for resp in resp_list.basestations:
+            logger.info("Stream {} | Basestation {} (UUID: {}) located at: ({}, {}) has status {}."
+                        .format(i + 1, resp.id, resp.uuid, resp.location.lat, resp.location.long,
+                                bs_pb2.ActivityStatus.Name(resp.status)))
+
+    # Update a BS
+    message = bs_pb2.Reply(uuid=12345, status=bs_pb2.ActivityStatus.Value("ACTIVE"), no_location=True)
+    bs = bs_stub.Update(message)
+    logger.info("Basestation {} (UUID: {}) located at: ({}, {}) has status {}."
+                .format(bs.id, bs.uuid, bs.location.long, bs.location.lat, bs_pb2.ActivityStatus.Name(bs.status)))
+
+    # Delete BS
+    message = bs_pb2.Request(uuid=12345)
+    bs = bs_stub.Delete(message)
+    logger.info("Basestation {} (UUID: {}) located at ({}, {}) has status {}."
+                .format(bs.id, bs.uuid, bs.location.long, bs.location.lat, bs_pb2.ActivityStatus.Name(bs.status)))
+
+    # Prune (permanently delete) BS
+    message = bs_pb2.Request(uuid=12345)
+    bs = bs_stub.Prune(message)
+    logger.info("Basestation {} (UUID: {}) located at ({}, {}) has status {}."
+                .format(bs.id, bs.uuid, bs.location.long, bs.location.lat, bs_pb2.ActivityStatus.Name(bs.status)))
 
     # Telecell stub
     tc_stub = TelecellStub(channel)
