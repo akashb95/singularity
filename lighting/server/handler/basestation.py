@@ -41,7 +41,7 @@ class BasestationHandler(BasestationServicer):
         if not bs:
             if not message:
                 message = "Basestation with {}: {} not found." \
-                    .format("ID" if request.id else request.uuid,
+                    .format("ID" if request.id else "UUID",
                             request.id or request.uuid)
 
             self.logger.info(message)
@@ -178,7 +178,7 @@ class BasestationHandler(BasestationServicer):
         if not bs:
             if not message:
                 message = "Basestation with {}: {} not found." \
-                    .format("ID" if request.id else request.uuid,
+                    .format("ID" if request.id else "UUID",
                             request.id or request.uuid)
 
             self.logger.info(message)
@@ -235,7 +235,7 @@ class BasestationHandler(BasestationServicer):
         if not bs:
             if not message:
                 message = "Basestation with {}: {} not found." \
-                    .format("ID" if request.id else request.uuid,
+                    .format("ID" if request.id else "UUID",
                             request.id or request.uuid)
 
             self.logger.info(message)
@@ -278,7 +278,7 @@ class BasestationHandler(BasestationServicer):
         if not bs:
             if not message:
                 message = "Basestation with {}: {} not found." \
-                    .format("ID" if request.id else request.uuid,
+                    .format("ID" if request.id else "UUID",
                             request.id or request.uuid)
 
             self.logger.info(message)
