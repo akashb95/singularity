@@ -8,7 +8,6 @@ import "location.proto";
 import "google/protobuf/timestamp.proto";
 import "element.proto";
 import "basestation.proto";
-import "asset.proto";
 
 service Telecell {
     rpc Get (Request) returns (Reply);
@@ -17,7 +16,13 @@ service Telecell {
 
     rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
 
-    // TODO #10: add RPCs to create and update TCs.
+    rpc Create (Reply) returns (Reply);
+
+    rpc Update (Reply) returns (Reply);
+
+    rpc Delete (Request) returns (Reply);
+
+    rpc Prune (Request) returns (Reply);
 }
 
 message ListRequest {
@@ -58,11 +63,16 @@ message Reply {
     // details of connected elements to this TC
     repeated lighting.element.Reply elements = 7;
 
-    // details of the asset this TC is connected to.
-    lighting.asset.Reply asset = 8;
-
     // where is this telecell? preferably the GPS coords...
-    lighting.location.Location location = 15;
+    oneof location_oneof {
+
+        // if setting a location, leave this unset - default value is False
+        bool no_location = 14;
+
+        // if no_location is False, then read this location. Else, leave this alone.
+        // Deals with edge case where there are elements at exactly (0, 0), (x, 0) and (0, y).
+        lighting.location.Location location = 15;
+    }
 }
 
 enum ActivityStatus {
