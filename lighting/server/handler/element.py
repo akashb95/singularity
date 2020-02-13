@@ -433,3 +433,14 @@ class ElementHandler(ElementServicer):
         asset_reply.element_uids.extend([element.id for element in element.asset.elements])
 
         return asset_reply
+
+    @staticmethod
+    def prepare_element_message(element: Element):
+        asset_reply = ElementHandler._prepare_asset_message(element)
+        element_reply = element_pb2.Reply(id=element.id,
+                                          status=element.status,
+                                          description=element.description,
+                                          asset=asset_reply)
+        element_reply = ElementHandler._set_location_oneof(element, element_reply)
+
+        return element_reply

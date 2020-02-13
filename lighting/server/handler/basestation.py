@@ -49,7 +49,7 @@ class BasestationHandler(BasestationServicer):
             bs_message = bs_pb2.Reply(no_location=True)
             return bs_message
 
-        bs_message = self._prepare_basestation_message(bs)
+        bs_message = self.prepare_basestation_message(bs)
         return bs_message
 
     def List(self, request, context):
@@ -77,7 +77,7 @@ class BasestationHandler(BasestationServicer):
         replies = []
 
         for i, basestation in enumerate(basestations):
-            bs_reply = self._prepare_basestation_message(basestation)
+            bs_reply = self.prepare_basestation_message(basestation)
             replies.append(bs_reply)
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(basestations) - 1:
@@ -90,8 +90,6 @@ class BasestationHandler(BasestationServicer):
 
                 # stream
                 yield bs_reply_list
-
-        return
 
     def SearchByLocation(self, request, context):
         """
@@ -119,7 +117,7 @@ class BasestationHandler(BasestationServicer):
             .all()
 
         for basestation in basestations:
-            bs_reply = self._prepare_basestation_message(basestation)
+            bs_reply = self.prepare_basestation_message(basestation)
 
             # stream reply to client
             yield bs_reply
@@ -135,6 +133,7 @@ class BasestationHandler(BasestationServicer):
 
         if not request.uuid:
             message = "Creating Basestation failed: expected Basestation UUID."
+            self.logger.warn(message)
             context.set_details(message)
             return bs_pb2.Reply(no_location=True)
 
@@ -148,7 +147,7 @@ class BasestationHandler(BasestationServicer):
         self.db.commit()
         self.db.refresh(new_bs)
 
-        bs_reply = self._prepare_basestation_message(new_bs)
+        bs_reply = self.prepare_basestation_message(new_bs)
 
         return bs_reply
 
@@ -207,7 +206,7 @@ class BasestationHandler(BasestationServicer):
             .format(bs.latitude, bs.longitude, bs.id, bs.uuid, bs.version, bs_pb2.ActivityStatus.Name(bs.status))
         self.logger.info(message)
 
-        bs_reply = self._prepare_basestation_message(bs)
+        bs_reply = self.prepare_basestation_message(bs)
 
         return bs_reply
 
@@ -248,7 +247,7 @@ class BasestationHandler(BasestationServicer):
 
         self.db.commit()
         self.logger.info(message)
-        bs_reply = self._prepare_basestation_message(bs)
+        bs_reply = self.prepare_basestation_message(bs)
 
         return bs_reply
 
@@ -298,7 +297,7 @@ class BasestationHandler(BasestationServicer):
         return bs_reply
 
     @staticmethod
-    def _prepare_basestation_message(basestation: Basestation):
+    def prepare_basestation_message(basestation: Basestation):
         """
         Given a row from the basestation table, populate the lighting.basestation.Reply message.
 
