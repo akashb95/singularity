@@ -23,6 +23,10 @@ service Telecell {
     rpc Delete (Request) returns (Reply);
 
     rpc Prune (Request) returns (Reply);
+
+    rpc AddToElements (ElementRequest) returns (Reply);
+
+    rpc RemoveFromElements (ElementRequest) returns (Reply);
 }
 
 message ListRequest {
@@ -73,6 +77,11 @@ message Reply {
         // Deals with edge case where there are elements at exactly (0, 0), (x, 0) and (0, y).
         lighting.location.Location location = 15;
     }
+}
+
+message ElementRequest {
+    Request tc_id = 1;
+    repeated lighting.element.Request elements = 2;
 }
 
 enum ActivityStatus {

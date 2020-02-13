@@ -2,11 +2,12 @@ import logging
 from datetime import datetime
 from datetime import timezone
 
+import grpc
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
 import lighting.lib.telecell_pb2 as tc_pb2
-from dbHandler import Telecell, engine
+from dbHandler import Element, Telecell, engine
 from lighting.lib.telecell_pb2_grpc import TelecellServicer
 from log import setup_logger
 from .basestation import BasestationHandler
@@ -47,7 +48,7 @@ class TelecellHandler(TelecellServicer):
                     .format("ID" if request.id else "UUID",
                             request.id or request.uuid)
 
-            self.logger.info(message)
+            self.logger.warn(message)
             context.set_details(message)
             tc_message = tc_pb2.Reply(no_location=True)
             return tc_message
@@ -276,6 +277,122 @@ class TelecellHandler(TelecellServicer):
 
         self.db.delete(tc)
         self.db.commit()
+
+        return tc_reply
+
+    def AddToElements(self, request, context):
+        """
+
+        :param request:
+        :param context:
+        :return:
+        """
+
+        message = ""
+
+        if request.tc_id.id:
+            tc = self.db.query(Telecell).get(request.id)
+
+        elif request.tc_id.uuid:
+            tc = self.db.query(Telecell).filter(Telecell.uuid == request.uuid).first()
+
+        else:
+            tc = None
+            message = "Need to provide Telecell ID or UUID for this RPC."
+
+        if not tc:
+            if not message:
+                message = "Telecell with {}: {} not found." \
+                    .format("ID" if request.id else "UUID",
+                            request.id or request.uuid)
+
+            self.logger.warn(message)
+            context.set_details(message)
+            tc_message = tc_pb2.Reply(no_location=True)
+            return tc_message
+
+        elements_not_found = []
+        elements = []
+        for element_request in request.elements:
+            element = self.db.query(Element).get(element_request.id)
+
+            if not element:
+                elements_not_found.append(element.id)
+
+            # Element IDs appended to array, but skip if there are any Elements not found.
+            if len(elements_not_found) == 0:
+                elements.append(element.id)
+
+        if len(elements_not_found) > 0:
+            message = "Could not find Element(s) with IDs {}".format(", ".join(elements_not_found))
+            context.abort(grpc.StatusCode.NOT_FOUND, message)
+
+        # associate Elements to Telecell
+        for element in elements:
+            element.telecell = tc
+
+        self.db.commit()
+        self.db.refresh(tc)
+
+        tc_reply = self.prepare_telecell_message(tc)
+
+        return tc_reply
+
+    def RemoveFromElements(self, request, context):
+        """
+
+        :param request:
+        :param context:
+        :return:
+        """
+
+        message = ""
+
+        if request.tc_id.id:
+            tc = self.db.query(Telecell).get(request.id)
+
+        elif request.tc_id.uuid:
+            tc = self.db.query(Telecell).filter(Telecell.uuid == request.uuid).first()
+
+        else:
+            tc = None
+            message = "Need to provide Telecell ID or UUID for this RPC."
+
+        if not tc:
+            if not message:
+                message = "Telecell with {}: {} not found." \
+                    .format("ID" if request.id else "UUID",
+                            request.id or request.uuid)
+
+            self.logger.warn(message)
+            context.set_details(message)
+            tc_message = tc_pb2.Reply(no_location=True)
+            return tc_message
+
+        elements_not_found = []
+        elements = []
+        for element_request in request.elements:
+            element = self.db.query(Element).get(element_request.id)
+
+            if not element:
+                elements_not_found.append(element.id)
+
+            # Element IDs appended to array, but skip if there are any Elements not found.
+            if len(elements_not_found) == 0:
+                elements.append(element.id)
+
+        if len(elements_not_found) > 0:
+            message = "Could not find Element(s) with IDs {}".format(", ".join(elements_not_found))
+            context.abort(grpc.StatusCode.NOT_FOUND, message)
+
+        # dissociate Elements from Telecell
+        for element in elements:
+            element.telecell = None
+
+        self.db.commit()
+        self.db.refresh(tc)
+
+        tc_reply = self.prepare_telecell_message(tc)
 
         return tc_reply
 
