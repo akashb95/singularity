@@ -21,13 +21,17 @@ class Telecell(Base):
     bs_id = Column(Integer, ForeignKey("basestation.id"), nullable=True)
     basestation = relationship(Basestation, backref=backref("telecells", uselist=True))
 
-    def __init__(self, uuid: int, relay: bool, latitude: float, longitude: float, basestation=None, status: int = None,
-                 updated_at=None):
+    def __init__(self, uuid: int, relay: bool, latitude: float = None, longitude: float = None, basestation=None,
+                 status: int = None, updated_at=None):
 
         self.uuid = uuid
         self.relay = relay
-        self.latitude = latitude
-        self.longitude = longitude
+
+        if latitude:
+            self.latitude = latitude
+
+        if longitude:
+            self.longitude = longitude
 
         if basestation:
             self.basestation = basestation
