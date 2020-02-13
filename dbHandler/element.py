@@ -17,7 +17,8 @@ class Element(Base):
 
     # each element can have a maximum one 1 telecell
     telecell_id = Column(Integer, ForeignKey("telecell.id"), nullable=True)
-    telecell = relationship(Telecell)
+    telecell = relationship(Telecell,
+                            backref=backref("elements", uselist=True))
 
     # 1 element/lamp has 1 asset/lamppost
     asset_id = Column(Integer, ForeignKey("asset.id"), nullable=False)
