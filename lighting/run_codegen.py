@@ -1,16 +1,19 @@
 """Runs protoc with the gRPC plugin to generate messages and gRPC stubs."""
 import logging
-from log import setup_logger
-
-from grpc_tools import protoc
 import os
 import re
+
+from grpc_tools import protoc
+
+import settings as lighting_settings
+from log import setup_logger
 
 generated_files_outdir = "./lib"
 
 logger = setup_logger("codegen", logging.DEBUG)
 
 if __name__ == "__main__":
+    lighting_settings.load_env_vars(False)
     abs_path_codegen_outdir = os.path.join(os.getcwd(), generated_files_outdir)
 
     if not os.path.exists(abs_path_codegen_outdir):
@@ -19,7 +22,7 @@ if __name__ == "__main__":
     protoc.main((
         '',
         '-I../protos',
-        '-I/usr/local/include',
+        '-I{}'.format(os.getenv("DEFAULT_PROTOS_INCLUDE_PATH")),
         '--python_out={}'.format(generated_files_outdir),
         '--grpc_python_out={}'.format(generated_files_outdir),
         '../protos/asset.proto',
