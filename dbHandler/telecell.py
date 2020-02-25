@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import Column, Integer, Float, Boolean, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship, backref
 
@@ -22,7 +24,7 @@ class Telecell(Base):
     basestation = relationship(Basestation, backref=backref("telecells", uselist=True))
 
     def __init__(self, uuid: int, relay: bool, latitude: float = None, longitude: float = None, basestation=None,
-                 status: int = None, updated_at=None):
+                 status: int = None, updated_at: datetime = None):
 
         self.uuid = uuid
         self.relay = relay
