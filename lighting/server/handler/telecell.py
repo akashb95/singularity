@@ -133,7 +133,7 @@ class TelecellHandler(TelecellServicer):
             return tc_pb2.Reply(no_location=True)
 
         longitude, latitude = None, None
-        if not request.location.no_location:
+        if not request.no_location:
             longitude, latitude = request.location.long, request.location.lat
 
         new_telecell = Telecell(uuid=request.uuid, latitude=latitude, longitude=longitude,
@@ -141,8 +141,11 @@ class TelecellHandler(TelecellServicer):
 
         self.db.add(new_telecell)
         self.db.commit()
+        self.db.refresh(new_telecell)
 
-        return
+        tc_reply = self.prepare_telecell_message(new_telecell)
+
+        return tc_reply
 
     def Update(self, request, context):
         """
@@ -186,9 +189,9 @@ class TelecellHandler(TelecellServicer):
 
         # if no time provided by user, then just go ahead and save current server time as updated_at
         if request.updated_at.seconds:
-            tc.updated_at = request.updated_at.seconds
+            tc.updated_at = datetime.utcfromtimestamp(request.updated_at.seconds)
         else:
-            tc.updated_at = datetime.utcnow().timestamp()
+            tc.updated_at = datetime.utcnow()
 
         if not request.no_location:
             tc.longitude, tc.latitude = request.location.long, request.location.lat
@@ -291,10 +294,10 @@ class TelecellHandler(TelecellServicer):
         message = ""
 
         if request.tc_id.id:
-            tc = self.db.query(Telecell).get(request.id)
+            tc = self.db.query(Telecell).get(request.tc_id.id)
 
         elif request.tc_id.uuid:
-            tc = self.db.query(Telecell).filter(Telecell.uuid == request.uuid).first()
+            tc = self.db.query(Telecell).filter(Telecell.uuid == request.tc_id.uuid).first()
 
         else:
             tc = None
@@ -303,8 +306,8 @@ class TelecellHandler(TelecellServicer):
         if not tc:
             if not message:
                 message = "Telecell with {}: {} not found." \
-                    .format("ID" if request.id else "UUID",
-                            request.id or request.uuid)
+                    .format("ID" if request.tc_id.id else "UUID",
+                            request.tc_id.id or request.tc_id.uuid)
 
             self.logger.warn(message)
             context.set_details(message)
@@ -319,9 +322,9 @@ class TelecellHandler(TelecellServicer):
             if not element:
                 elements_not_found.append(element.id)
 
-            # Element IDs appended to array, but skip if there are any Elements not found.
+            # Elements appended to array, but skip if there are any Elements not found.
             if len(elements_not_found) == 0:
-                elements.append(element.id)
+                elements.append(element)
 
         if len(elements_not_found) > 0:
             message = "Could not find Element(s) with IDs {}".format(", ".join(elements_not_found))
@@ -349,10 +352,10 @@ class TelecellHandler(TelecellServicer):
         message = ""
 
         if request.tc_id.id:
-            tc = self.db.query(Telecell).get(request.id)
+            tc = self.db.query(Telecell).get(request.tc_id.id)
 
         elif request.tc_id.uuid:
-            tc = self.db.query(Telecell).filter(Telecell.uuid == request.uuid).first()
+            tc = self.db.query(Telecell).filter(Telecell.uuid == request.tc_id.uuid).first()
 
         else:
             tc = None
@@ -361,8 +364,8 @@ class TelecellHandler(TelecellServicer):
         if not tc:
             if not message:
                 message = "Telecell with {}: {} not found." \
-                    .format("ID" if request.id else "UUID",
-                            request.id or request.uuid)
+                    .format("ID" if request.tc_id.id else "UUID",
+                            request.tc_id.id or request.tc_id.uuid)
 
             self.logger.warn(message)
             context.set_details(message)
@@ -370,6 +373,7 @@ class TelecellHandler(TelecellServicer):
             return tc_message
 
         elements_not_found = []
+        elements_unassociated_to_tc = []
         elements = []
         for element_request in request.elements:
             element = self.db.query(Element).get(element_request.id)
@@ -377,12 +381,28 @@ class TelecellHandler(TelecellServicer):
             if not element:
                 elements_not_found.append(element.id)
 
-            # Element IDs appended to array, but skip if there are any Elements not found.
-            if len(elements_not_found) == 0:
-                elements.append(element.id)
+            elif element.telecell_id != tc.id:
+                elements_unassociated_to_tc.append(element.id)
 
+            # Elements appended to array, but skip if there are any Elements not found,
+            # or if request asks to dissociate TC from an Element not associated with itself.
+            # (i.e. a malformed request).
+            if len(elements_not_found) == 0 and len(elements_unassociated_to_tc) == 0:
+                elements.append(element)
+
+        # check for any errors, and abort if any found.
+        abort = False
+        message = ""
         if len(elements_not_found) > 0:
-            message = "Could not find Element(s) with IDs {}".format(", ".join(elements_not_found))
+            message += "Could not find Element(s) with IDs {}\n".format(", ".join(elements_not_found))
+            abort = True
+
+        elif len(elements_unassociated_to_tc) > 0:
+            message += "These Element(s) (by ID) are not associated to this Telecell: {}\n" \
+                .format(", ".join(elements_unassociated_to_tc))
+            abort = True
+
+        if abort:
             context.abort(grpc.StatusCode.NOT_FOUND, message)
 
         # dissociate Elements from Telecell
@@ -405,8 +425,17 @@ class TelecellHandler(TelecellServicer):
         :return:
         """
 
-        # create reply message and set up the fields with simple types
-        tc_reply = tc_pb2.Reply(id=telecell.id, uuid=telecell.uuid, relay=telecell.relay, status=telecell.status)
+        # set up BS field
+        if telecell.basestation:
+            bs_reply = BasestationHandler.prepare_basestation_message(telecell.basestation)
+
+            # create reply message and set up the fields with simple types
+            tc_reply = tc_pb2.Reply(id=telecell.id, uuid=telecell.uuid, relay=telecell.relay, status=telecell.status,
+                                    basestation=bs_reply)
+
+        # if TC has no BS
+        else:
+            tc_reply = tc_pb2.Reply(id=telecell.id, uuid=telecell.uuid, relay=telecell.relay, status=telecell.status)
 
         # set timestamp field
         tc_reply.updated_at.seconds = int(telecell.updated_at.replace(tzinfo=timezone.utc).timestamp())
@@ -417,12 +446,10 @@ class TelecellHandler(TelecellServicer):
         else:
             tc_reply.no_location = True
 
-        # set up BS field
-        bs_reply = BasestationHandler.prepare_basestation_message(telecell.basestation)
-        tc_reply.basestation = bs_reply
-
         # set up Elements field
         element_replies = []
+
+        # noinspection PyUnresolvedReferences
         for element in telecell.elements:
             element_replies.append(ElementHandler.prepare_element_message(element))
         tc_reply.elements.extend(element_replies)

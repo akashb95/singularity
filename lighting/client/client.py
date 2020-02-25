@@ -7,6 +7,7 @@ import lighting.lib.asset_pb2 as asset_pb2
 import lighting.lib.basestation_pb2 as bs_pb2
 import lighting.lib.element_pb2 as element_pb2
 import lighting.lib.location_pb2 as location_pb2
+import lighting.lib.telecell_pb2 as tc_pb2
 import lighting.lib.user_pb2 as user_pb2
 import settings as lighting_settings
 from lighting.lib.asset_pb2_grpc import AssetStub
@@ -223,9 +224,72 @@ def run(port: int):
 
     # Telecell stub
     tc_stub = TelecellStub(channel)
-    # TODO #10: Test TelecellHandler
 
-    # close channel.
+    # Get Telecell
+    message = tc_pb2.Request(id=5)
+    tc = tc_stub.Get(message)
+    logger.info("Telecell {} (UUID: {}) updated at {}\nBS:{}\nElements:{}".format(tc.id, tc.uuid, tc.updated_at.seconds,
+                                                                                  tc.basestation, tc.elements))
+
+    # List Telecell
+    message = tc_pb2.ListRequest(limit=5, offset=345)
+    response_all = tc_stub.List(message)
+    for resp_list in response_all:
+        for tc in resp_list.telecells:
+            logger.info("Telecell {}, status: {}, with Elements {}."
+                        .format(tc.id, tc_pb2.ActivityStatus.Name(tc.status), tc.elements))
+
+    # Search TC by location
+    map_rectangle = location_pb2.MapRect(lo=location_pb2.Location(long=0, lat=0),
+                                         hi=location_pb2.Location(long=100, lat=129))
+    search_response = tc_stub.SearchByLocation(location_pb2.FilterByLocationRequest(rectangle=map_rectangle))
+
+    # need to iterate over all returned replies before channel is closed
+    for tc in search_response:
+        logger.info("Telecell {} (UUID: {}) is at ({}, {}), and has status: {}\n"
+                    .format(tc.id, tc.uuid, tc.location.long, tc.location.lat, tc_pb2.ActivityStatus.Name(tc.status)))
+
+    # Create TC
+    uuid = 31415206
+    message = tc_pb2.Reply(uuid=uuid, no_location=True, relay=True, status=1)
+    tc = tc_stub.Create(message)
+    print(tc)
+
+    # Update TC - use TC created above
+    message = tc_pb2.Reply(id=tc.id, relay=False, status=2, location=location_pb2.Location(long=123, lat=124))
+    tc = tc_stub.Update(message)
+    print(tc)
+
+    # Delete TC - use TC created above
+    message = tc_pb2.Request(uuid=uuid)
+    tc = tc_stub.Delete(message)
+    print(tc)
+
+    # Prune TC - use TC created above
+    message = tc_pb2.Request(uuid=uuid)
+    tc = tc_stub.Prune(message)
+    print(tc)
+
+    # Add TC to Elements
+    new_tc = tc_stub.Create(tc_pb2.Reply(uuid=uuid))
+
+    tc_request = tc_pb2.Request(id=new_tc.id)
+    element_1, element_2 = element_pb2.Request(id=1), element_pb2.Request(id=2)
+    add_to_element_request = tc_pb2.ElementRequest(tc_id=tc_request)
+    add_to_element_request.elements.extend([element_1, element_2])
+    tc = tc_stub.AddToElements(add_to_element_request)
+    print(tc)
+
+    # Remove TC from elements
+    remove_from_element_request = tc_pb2.ElementRequest(tc_id=tc_request)
+    remove_from_element_request.elements.extend([element_1, element_2])
+    tc = tc_stub.RemoveFromElements(remove_from_element_request)
+    print(tc)
+
+    tc_stub.Delete(tc_pb2.Request(id=new_tc.id))
+    tc_stub.Prune(tc_pb2.Request(id=new_tc.id))
+
+    # close channel
     channel.close()
     return
 
