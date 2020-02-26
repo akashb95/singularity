@@ -4,10 +4,10 @@ import grpc
 import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
-import lighting.lib.asset_pb2 as asset_pb2
 import lighting.lib.element_pb2 as element_pb2
 from dbHandler import Element, Asset, engine
 from lighting.lib.element_pb2_grpc import ElementServicer
+from lighting.server.handler.asset import AssetHandler
 from log import setup_logger
 
 
@@ -35,14 +35,13 @@ class ElementHandler(ElementServicer):
         # if no element found
         if not element:
             context.set_details("Element {} not found in system.".format(request.id))
-            return element_pb2.Reply(no_location=True)
+            return element_pb2.Reply()
 
         # get associated asset, and the elements that asset is connected to
-        asset_reply = self._prepare_asset_message(element)
+        asset_reply = AssetHandler.prepare_asset_message(element)
 
         element_reply = element_pb2.Reply(id=element.id, status=element.status,
                                           asset=asset_reply, description=element.description)
-        element_reply = self._set_location_oneof(element, element_reply)
 
         return element_reply
 
@@ -73,13 +72,7 @@ class ElementHandler(ElementServicer):
         replies = []
 
         for i, element in enumerate(elements):
-            asset_reply = self._prepare_asset_message(element)
-            element_reply = element_pb2.Reply(
-                id=element.id,
-                status=element.status,
-                asset=asset_reply,
-                description=element.description)
-            self._set_location_oneof(element, element_reply)
+            element_reply = self.prepare_element_message(element)
 
             replies.append(element_reply)
 
@@ -114,21 +107,14 @@ class ElementHandler(ElementServicer):
         self.logger.info("Request for Elements in box between ({}, {}) and ({}, {})".format(bottom, left, top, right))
 
         # find elements in that fall in bounding box
-        elements = self.db.query(Element) \
-            .filter(
-            db.and_(Element.longitude >= left, Element.longitude <= right,
-                    Element.latitude >= bottom, Element.latitude <= top)) \
-            .all()
+        assets_subquery = self.db.query(Asset).filter(
+            db.and_(Asset.longitude >= left, Asset.longitude <= right,
+                    Asset.latitude >= bottom, Asset.latitude <= top)
+        ).subquery()
+        elements = self.db.query(Element).join(assets_subquery, assets_subquery.c.id == Element.asset_id).all()
 
         for element in elements:
-            asset_reply = self._prepare_asset_message(element)
-            element_reply = element_pb2.Reply(
-                id=element.id,
-                status=element.status,
-                asset=asset_reply,
-                description=element.description
-            )
-            element_reply = self._set_location_oneof(element, element_reply)
+            element_reply = self.prepare_element_message(element)
 
             # stream reply to client
             yield element_reply
@@ -149,18 +135,10 @@ class ElementHandler(ElementServicer):
         new_elements = []
 
         for element in request.elements:
-            # if location not specified, then they'll be stored as NULL values in DB.
-            if element.no_location:
-                new_element = Element(asset=new_asset,
-                                      description=element.description)
-            else:
-                new_element = Element(asset=new_asset,
-                                      description=element.description,
-                                      latitude=element.location.latitude,
-                                      longitude=element.location.longitude)
+            new_element = Element(asset=new_asset, description=element.description)
 
             # don't let the user set status to 0, as this is the default zero value
-            if element.status != element_pb2.ActivityStatus.Value("UNAVAILABLE"):
+            if element.status != 0:
                 new_element.status = element.status
             else:
                 new_element.status = element_pb2.ActivityStatus.Value("INACTIVE")
@@ -180,7 +158,7 @@ class ElementHandler(ElementServicer):
         context.set_details(message)
 
         # populate reply message - asset will be the same for all new elements created by this RPC
-        asset_reply = self._prepare_asset_message(new_elements[0])
+        asset_reply = AssetHandler.prepare_asset_message(new_elements[0].asset)
 
         # prepare empty message to send back list of elements created.
         elements_reply = element_pb2.ListReply()
@@ -194,7 +172,6 @@ class ElementHandler(ElementServicer):
                                               status=element.status,
                                               description=element.description,
                                               asset=asset_reply)
-            element_reply = self._set_location_oneof(element, element_reply)
 
             # save to list of elements that will be sent out finally
             element_replies.append(element_reply)
@@ -213,7 +190,7 @@ class ElementHandler(ElementServicer):
         if not element:
             message = "Request to update Element {} failed: Element does not appear to exist!".format(request.id)
             self.logger.warn(message)
-            return element_pb2.Reply(id=request.id, message=message)
+            return element_pb2.Reply(id=request.id)
 
         # expecting either new asset ID (int) or an entire asset message.
         if request.asset_id != 0:
@@ -229,7 +206,7 @@ class ElementHandler(ElementServicer):
 
                 context.set_code(grpc.StatusCode.NOT_FOUND)
                 context.set_details(message)
-                return element_pb2.Reply(id=request.id, message=message)
+                return element_pb2.Reply(id=request.id)
 
             element.asset_id = request.asset_id
 
@@ -246,7 +223,7 @@ class ElementHandler(ElementServicer):
 
                 context.set_code(grpc.StatusCode.NOT_FOUND)
                 context.set_details(message)
-                return element_pb2.Reply(id=request.id, message=message)
+                return element_pb2.Reply(id=request.id)
 
             element.asset = request.asset
 
@@ -257,38 +234,10 @@ class ElementHandler(ElementServicer):
         if request.description:
             element.description = request.description
 
-        if not request.no_location:
-
-            # sanity checks
-            invalid = []
-            if not -180 <= request.location.long <= 180:
-                invalid = "longitude"
-
-            if not -180 <= request.location.lat <= 180:
-                invalid = "latitude"
-
-            if len(invalid) > 0:
-                invalid_arguments = "\n - ".join(invalid)
-                context.set_details("Invalid arguments:\n{}".format(invalid_arguments))
-                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-
-            element.longitude = request.location.long
-            element.latitude = request.location.lat
-
-        if request.no_location:
-            element.longitude, element.latitude = None, None
-
         self.db.commit()
 
-        # prepare asset message
-        asset_reply = self._prepare_asset_message(element)
-
         # prepare element reply
-        element_reply = element_pb2.Reply(id=request.id,
-                                          status=element.status,
-                                          description=element.description,
-                                          asset=asset_reply)
-        element_reply = self._set_location_oneof(element, element_reply)
+        element_reply = self.prepare_element_message(element)
 
         return element_reply
 
@@ -305,19 +254,14 @@ class ElementHandler(ElementServicer):
 
         if not element:
             context.set_details("Element {} does not exist!".format(request.id))
-            return element_pb2.Reply(id=request.id, no_location=True)
+            return element_pb2.Reply(id=request.id)
 
         element.status = element_pb2.ActivityStatus.Value("DELETED")
 
         self.db.commit()
 
         # prepare asset message
-        asset_reply = self._prepare_asset_message(element)
-
-        # prepare element message
-        element_reply = element_pb2.Reply(id=request.id, status=element.status,
-                                          description=element.description, asset=asset_reply)
-        element_reply = self._set_location_oneof(element, element_reply)
+        element_reply = self.prepare_element_message(element)
 
         message = "Set status of Element {} to DELETED (soft-deletion).".format(element.id)
         self.logger.info(message)
@@ -338,7 +282,7 @@ class ElementHandler(ElementServicer):
 
         if not element:
             context.set_details("Element {} does not exist!".format(request.id))
-            return element_pb2.Reply(id=request.id, no_location=True)
+            return element_pb2.Reply(id=request.id)
 
         message = "Deleted Element {} (permanently).".format(element.id)
 
@@ -348,7 +292,7 @@ class ElementHandler(ElementServicer):
         self.logger.info(message)
         context.set_details(message)
 
-        return element_pb2.Reply(id=request.id, no_location=True)
+        return element_pb2.Reply(id=request.id)
 
     def AddToAsset(self, request, context):
         """
@@ -368,7 +312,7 @@ class ElementHandler(ElementServicer):
         if not element:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("Element {} does not exist!".format(request.id))
-            return element_pb2.Reply(id=request.id, no_location=True, asset_id=request.asset_id)
+            return element_pb2.Reply(id=request.id, asset_id=request.asset_id)
 
         # get asset from DB if exists, or send back an error
         asset = self.db.query(Asset).get(request.asset_id)
@@ -376,7 +320,7 @@ class ElementHandler(ElementServicer):
         if not asset:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("Asset {} does not exist!".format(request.asset_id))
-            return element_pb2.Reply(id=request.id, no_location=True, asset_id=request.asset_id)
+            return element_pb2.Reply(id=request.id, asset_id=request.asset_id)
 
         # associate element to asset and commit changes to DB
         old_element_asset_id = element.asset.id  # for logging
@@ -388,59 +332,17 @@ class ElementHandler(ElementServicer):
         self.logger.info(message)
         context.set_details(message)
 
-        # prepare asset message
-        asset_reply = self._prepare_asset_message(element)
-
         # prepare element message
-        element_reply = element_pb2.Reply(id=element.id, status=element.status,
-                                          description=element.description,
-                                          asset=asset_reply)
-        element_reply = self._set_location_oneof(element, element_reply)
+        element_reply = self.prepare_element_message(element)
 
         return element_reply
 
     @staticmethod
-    def _set_location_oneof(element: Element, element_reply: element_pb2.Reply):
-        """
-        Checks if the element has non-null longitude and latitude, and sets Element.Reply.location_oneof accordingly.
-
-        If both lat and long are non-null, then obviously location exists, and so the coordinates set on Reply message.
-        Otherwise, set no_location field in Reply to be True.
-
-        :param element: {dbHandler.Element} Element returned by DB query.
-        :param element_reply: Reply message
-        :return:
-        """
-
-        if element.longitude is not None and element.latitude is not None:
-            element_reply.location.long, element_reply.location.lat = element.longitude, element.latitude
-
-        else:
-            element_reply.no_location = True
-
-        return element_reply
-
-    @staticmethod
-    def _prepare_asset_message(element: Element):
-        """
-        Given an Element, prepare an Asset.Reply message which contains Asset's details.
-
-        :param element:
-        :return:
-        """
-
-        asset_reply = asset_pb2.Reply(id=element.asset.id, status=element.asset.status)
-        asset_reply.element_uids.extend([element.id for element in element.asset.elements])
-
-        return asset_reply
-
-    @staticmethod
-    def prepare_element_message(element: Element):
-        asset_reply = ElementHandler._prepare_asset_message(element)
+    def prepare_element_message(element: Element) -> element_pb2.Reply:
+        asset_reply = AssetHandler.prepare_asset_message(element.asset)
         element_reply = element_pb2.Reply(id=element.id,
                                           status=element.status,
                                           description=element.description,
                                           asset=asset_reply)
-        element_reply = ElementHandler._set_location_oneof(element, element_reply)
 
         return element_reply
