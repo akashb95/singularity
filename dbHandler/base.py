@@ -17,7 +17,8 @@ engine = db.create_engine("{db_conn}://{user}:{password}@{host}/{db_name}"
                                   user=os.getenv("DB_USER"),
                                   password=os.getenv("DB_PASS"),
                                   host=os.getenv("DB_HOST"),
-                                  db_name=os.getenv("DB_NAME")))
+                                  db_name=os.getenv("DB_NAME")),
+                          pool_recycle=3600)
 
 logger.debug("Connected to {}".format(engine))
 
