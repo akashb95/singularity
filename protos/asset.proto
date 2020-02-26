@@ -11,6 +11,8 @@ service Asset {
 
     rpc List (ListRequest) returns (stream ListReply);
 
+    rpc SearchByLocation (lighting.location.FilterByLocationRequest) returns (stream Reply);
+
     rpc Create (Reply) returns (Reply);
 
     rpc Update (Reply) returns (Reply);

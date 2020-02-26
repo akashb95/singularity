@@ -1,5 +1,6 @@
 import logging
 
+import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
 import lighting.lib.asset_pb2 as asset_pb2
@@ -75,6 +76,37 @@ class AssetHandler(AssetServicer):
                 reply_list.assets.extend(replies)
                 replies = []
                 yield reply_list
+
+    def SearchByLocation(self, request, context):
+        """
+        Search for assets based on a map rectangle.
+
+        Need to define 2 sets of latitude and longitude to define the bounding box.
+
+        :param request:
+        :param context:
+        :return:
+        """
+
+        # find the bounding box on the map
+        left = min(request.rectangle.lo.long, request.rectangle.hi.long)
+        right = max(request.rectangle.lo.long, request.rectangle.hi.long)
+        top = max(request.rectangle.lo.lat, request.rectangle.hi.lat)
+        bottom = min(request.rectangle.lo.lat, request.rectangle.hi.lat)
+
+        self.logger.info("Request for Assets in box between ({}, {}) and ({}, {})".format(bottom, left, top, right))
+
+        # find assets in that fall in bounding box
+        assets = self.db.query(Asset) \
+            .filter(db.and_(Asset.longitude >= left, Asset.longitude <= right,
+                            Asset.latitude >= bottom, Asset.latitude <= top)) \
+            .all()
+
+        for asset in assets:
+            asset_reply = self.prepare_asset_message(asset)
+
+            # stream reply to client
+            yield asset_reply
 
     def Create(self, request, context):
         """
