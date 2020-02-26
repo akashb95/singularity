@@ -48,7 +48,7 @@ def run(port: int):
     # need to iterate over all returned replies before channel is closed
     for resp in search_response:
         logger.info("Element {} ({}, {}) connected to Asset {}, status: {}\n{}"
-                    .format(resp.id, resp.location.lat, resp.location.long, resp.asset.id,
+                    .format(resp.id, resp.asset.location.long, resp.asset.location.lat, resp.asset.id,
                             element_pb2.ActivityStatus.Name(resp.status),
                             resp.description))
 
@@ -57,7 +57,7 @@ def run(port: int):
     for i, resp_list in enumerate(response_all):
         for resp in resp_list.elements:
             logger.info("Stream {} | Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
-                        .format(i + 1, resp.id, resp.location.lat, resp.location.long, resp.asset.id,
+                        .format(i + 1, resp.id, resp.asset.location.long, resp.asset.location.lat, resp.asset.id,
                                 element_pb2.ActivityStatus.Name(resp.status),
                                 resp.description))
 
@@ -71,29 +71,29 @@ def run(port: int):
     response_all = stub.Create(message)
     for i, resp in enumerate(response_all.elements):
         logger.info("{} Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
-                    .format(i + 1, resp.id, resp.location.lat, resp.location.long, resp.asset.id,
+                    .format(i + 1, resp.id, resp.asset.location.long, resp.asset.location.lat, resp.asset.id,
                             element_pb2.ActivityStatus.Name(resp.status),
                             resp.description))
 
     # Update Element
-    message = element_pb2.Reply(id=84, status=1, description="Client Updated Element")
+    message = element_pb2.Reply(id=85, status=1, description="Client Updated Element")
     message.location.long, message.location.lat = 5, 5
     resp = stub.Update(message)
     logger.info("Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
-                .format(resp.id, resp.location.lat, resp.location.long, resp.asset.id,
+                .format(resp.id, resp.asset.location.long, resp.asset.location.lat, resp.asset.id,
                         element_pb2.ActivityStatus.Name(resp.status),
                         resp.description))
 
     # Soft-Delete Element
-    message = element_pb2.Request(id=84)
+    message = element_pb2.Request(id=85)
     resp = stub.Delete(message)
     logger.info("Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
-                .format(resp.id, resp.location.lat, resp.location.long, resp.asset.id,
+                .format(resp.id, resp.asset.location.long, resp.asset.location.lat, resp.asset.id,
                         element_pb2.ActivityStatus.Name(resp.status),
                         resp.description))
 
     # Prune (permanently delete) Element
-    message = element_pb2.Request(id=84)
+    message = element_pb2.Request(id=85)
     resp = stub.Prune(message)
     logger.info("Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
                 .format(resp.id, resp.location.lat, resp.location.long, resp.asset.id,
@@ -104,7 +104,7 @@ def run(port: int):
     message = element_pb2.Reply(id=489, asset_id=4)
     resp = stub.AddToAsset(message)
     logger.info("Element {} ({}, {}) connected to Asset {}, status: {} \n{}"
-                .format(resp.id, resp.location.lat, resp.location.long, resp.asset.id,
+                .format(resp.id, resp.asset.location.long, resp.asset.location.lat, resp.asset.id,
                         element_pb2.ActivityStatus.Name(resp.status),
                         resp.description))
 
@@ -125,21 +125,21 @@ def run(port: int):
 
     # create Asset
     message = asset_pb2.Reply(status=asset_pb2.ActivityStatus.Value("ACTIVE"))
-    response = asset_stub.Create(message)
-    logger.info("Created Asset {}, status: {}.".format(response.id, response.status))
+    new_asset = asset_stub.Create(message)
+    logger.info("Created Asset {}, status: {}.".format(new_asset.id, new_asset.status))
 
     # Update Asset
-    message = asset_pb2.Reply(id=301, status=asset_pb2.ActivityStatus.Value("INACTIVE"))
+    message = asset_pb2.Reply(id=new_asset.id, status=asset_pb2.ActivityStatus.Value("INACTIVE"))
     response, call = asset_stub.Update.with_call(message)
     logger.info(call.details())
 
     # Soft-delete an asset
-    message = asset_pb2.Request(id=499)
+    message = asset_pb2.Request(id=new_asset.id)
     response, call = asset_stub.Delete.with_call(message)
     logger.info(call.details())
 
     # Permanently delete an asset and associated telecells
-    message = asset_pb2.Request(id=499)
+    message = asset_pb2.Request(id=new_asset.id)
     response, call = asset_stub.Prune.with_call(message)
     logger.info(call.details())
 
