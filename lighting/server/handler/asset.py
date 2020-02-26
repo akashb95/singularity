@@ -36,7 +36,7 @@ class AssetHandler(AssetServicer):
             return asset_pb2.Reply()
 
         # populate reply message
-        asset_reply = self._prepare_asset_message(asset)
+        asset_reply = self.prepare_asset_message(asset)
 
         return asset_reply
 
@@ -67,7 +67,7 @@ class AssetHandler(AssetServicer):
 
         for i, asset in enumerate(assets):
             # populate reply message
-            asset_reply = self._prepare_asset_message(asset)
+            asset_reply = self.prepare_asset_message(asset)
             replies.append(asset_reply)
 
             if len(replies) == self.MAX_LIST_SIZE or i == len(assets) - 1:
@@ -132,7 +132,7 @@ class AssetHandler(AssetServicer):
         self.logger.info(message)
 
         # populate message
-        asset_reply = self._prepare_asset_message(asset, message)
+        asset_reply = self.prepare_asset_message(asset)
         context.set_details(message)
 
         return asset_reply
@@ -178,8 +178,7 @@ class AssetHandler(AssetServicer):
 
         # populate reply message
         asset_reply = asset_pb2.Reply(id=deleted_asset.id,
-                                      status=deleted_asset.status,
-                                      message=message)
+                                      status=deleted_asset.status)
         asset_reply.element_uids.extend(deleted_elements)
         context.set_details(message)
 
@@ -198,7 +197,7 @@ class AssetHandler(AssetServicer):
         if not asset_to_be_deleted:
             message = "Asset {} does not exist in system!".format(request.id)
             context.set_details(message)
-            return asset_pb2.Reply(message=message)
+            return asset_pb2.Reply()
 
         # get associated elements before they disappear forever...
         associated_element_ids = [element.id for element in asset_to_be_deleted.elements]
@@ -216,32 +215,29 @@ class AssetHandler(AssetServicer):
 
         # populate reply message
         asset = asset_pb2.Reply(id=request.id,
-                                status=asset_pb2.ActivityStatus.Value("UNAVAILABLE"),
-                                message=message)
+                                status=asset_pb2.ActivityStatus.Value("UNAVAILABLE"))
         asset.element_uids.extend(associated_element_ids)
         context.set_details(message)
 
         return asset
 
     @staticmethod
-    def _prepare_asset_message(asset: Asset, message: str = None) -> asset_pb2.Reply:
+    def prepare_asset_message(asset: Asset) -> asset_pb2.Reply:
         """
+        Given an Asset, prepare an Asset.Reply message which contains Asset's details.
 
-        :param asset: {dbHandler.Asset}
+        :param asset:
         :return:
         """
 
-        # find elements for this asset and store their IDs
-        element_uids = [element.id for element in asset.elements]
+        asset_reply = asset_pb2.Reply(id=asset.id, status=asset.status)
 
-        # populate message
-        asset_reply = asset_pb2.Reply(id=asset.id,
-                                      status=asset.status)
+        asset_reply.element_uids.extend([element.id for element in asset.elements])
 
-        if message is not None:
-            asset_reply.message = message
+        if asset.latitude and asset.longitude:
+            asset_reply.location.long, asset_reply.location.lat = asset.longitude, asset.latitude
 
-        # put this asset's elements' IDs into the message too.
-        asset_reply.element_uids.extend(element_uids)
+        else:
+            asset_reply.no_location = True
 
         return asset_reply
