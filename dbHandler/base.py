@@ -9,7 +9,6 @@ import settings
 settings.load_env_vars()
 
 logger = logging.getLogger("server")
-
 logger.debug("Creating DB Engine, DB Session and Base class.")
 
 engine = db.create_engine("{db_conn}://{user}:{password}@{host}/{db_name}"
