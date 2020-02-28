@@ -38,10 +38,7 @@ class ElementHandler(ElementServicer):
             return element_pb2.Reply()
 
         # get associated asset, and the elements that asset is connected to
-        asset_reply = AssetHandler.prepare_asset_message(element)
-
-        element_reply = element_pb2.Reply(id=element.id, status=element.status,
-                                          asset=asset_reply, description=element.description)
+        element_reply = self.prepare_element_message(element)
 
         return element_reply
 
