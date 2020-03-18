@@ -14,8 +14,7 @@
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
-<a name="why"></a>
-## Start with "Why?" 🤷🏽‍
+## <a name="why"></a> Start with "Why?" 🤷🏽‍
 
 We'll all be veterans one day of this deadly quagmire of software junk that is PLANet. We all think we can do better, and that had _we_ been in charge, we could have figured it all out.
 
@@ -25,8 +24,7 @@ Oh and there's gonna be pizza. And coke (BYO credit cards). Maybe a hipflask of 
 
 [🗺 Go back to Navigation &uarr;‍](#nav)
 
-<a name="what"></a>
-## What's the idea? 💡
+## <a name="what"></a> What's the idea? 💡
 In the time afforded to us, we can make a decent attempt at showcasing some of the key functionality within PLANet. After an informal discussion with Jon, it seems that the most important things people do with our hunk of software is check Daily Faults (what's gone wrong?? 🤢) and billing (how much am I shelling out _now_??? 🔥💸). 
 
 As we all know (but I'll provide some brief context anyway), PLANet codebase is totally monolithic. SQL commands are all over the place, the ExtJS is inextricably tied up with the PHP, and every little TALQ CMS requires non-trivial and fiddly changes in the outmoded and obsolete DB.
