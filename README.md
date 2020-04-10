@@ -2,9 +2,6 @@
 
 <a name="nav"></a>
 ## Quick Nav 🗺
-- [Start with "Why?"‍](#why)
-- [What's the idea?](#what)
-- [How do we do this?](#how)
 - [Leggo️](#leggo)
     + [Installing gRPC stuff](#installing-grpc-stuff)
     + [Environment Variables](#environment-variables)
@@ -14,49 +11,9 @@
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
-## <a name="why"></a> Start with "Why?" 🤷🏽‍
-
-We'll all be veterans one day of this deadly quagmire of software junk that is PLANet. We all think we can do better, and that had _we_ been in charge, we could have figured it all out.
-
-This project is a chance to show what is possible with a bit of time, a lot of energy, and a group vibrant individuals working as a team. 
-
-Oh and there's gonna be pizza. And coke (BYO credit cards). Maybe a hipflask of Captain Morgan. 👀
-
-[🗺 Go back to Navigation &uarr;‍](#nav)
-
-## <a name="what"></a> What's the idea? 💡
-In the time afforded to us, we can make a decent attempt at showcasing some of the key functionality within PLANet. After an informal discussion with Jon, it seems that the most important things people do with our hunk of software is check Daily Faults (what's gone wrong?? 🤢) and billing (how much am I shelling out _now_??? 🔥💸). 
-
-As we all know (but I'll provide some brief context anyway), PLANet codebase is totally monolithic. SQL commands are all over the place, the ExtJS is inextricably tied up with the PHP, and every little TALQ CMS requires non-trivial and fiddly changes in the outmoded and obsolete DB.
- 
-The solution is quite simple: microservices 🎉. It keeps the separate components... well... Separate. In this way, everything that depends on the DB can be kept isolated from each other and doesn't have to interact with any PLANet code at all. It won't just clean up PLANet, but will provide a scalable and modular way to organise the entire business. 
-
-Of course, microservices have been around for years and years. But who wants to always stick with the old? 
-
-And so, this particular project experiments with [gRPC](https://grpc.io). gRPC is a (relatively new) framework that allows microservices to communicate via well-defined protocols. Each of the services can be in any of 10 different languages, from Java to JavaScript, from PHP to Python. 
-
-The idea is simple enough. We give gRPC certain **protocol definitions**. Using a simple CLI command, we generate **boilerplate code** in whichever of the supported languages we choose. The boilerplate provides functions/class/methods with which we can tell **servers and clients** what to do with the messages they receive and how to respond.
-
-[🗺 Go back to Navigation &uarr;‍](#nav)
-
-<a name="how"></a>
-## How do we do this? 🧐⁉️
-We envisage a system where:
-* The frontend (i.e. PLANet) is slick and smooth and sexy.
-* Frontend communicates to an API Gateway of a kind that validates and forwards requests to the appropriate microservices.
-* The microservices can communicate between themselves and do the tasks they're meant to.
-* The microservices and ONLY the microservices can directly modify and/or read the DB directly.
-* The response feeds back through the chain, and is reflected in the frontend.
-
-Of course, for the _full_ range of functionality that Telensa provides, this would take months to implement, even with an effective team. But to reiterate, we only want to focus on a couple of key functionalities and highlight the attractions of our _design_ rather than flaunt the range of tricks our code can do.
-
-For now, we propose that we come up with a list of tasks (that we'll put in as Github Issues), that can be taken up by anyone who wishes to tackle that particular task. The list of tasks itself should be decided in conference, but we deliberately want to keep these limited owing to the very little time we have on the day ⏰.
-
-[🗺 Go back to Navigation &uarr;‍](#nav)
-
 <a name="leggo"></a>
 ## Leggo 🏃🏽‍♂️🏃🏽‍♀️
-This repo is mainly a kind of template that everyone else can follow when working with gRPC stuff. It also will, hopefully, convey the structure that I envisage for the project. For now, this only contains implementations of gRPC server and client in Python the language of _my_ expertise. Separate microservices should be stored as separate projects on separate [orphan branches](https://stackoverflow.com/questions/14679614/whats-the-best-practice-for-putting-multiple-projects-in-a-git-repository).
+This repo is mainly a kind of template that everyone else can follow when working with gRPC stuff. It also will, hopefully, convey the structure that I envisage for the project. For now, this only contains implementations of gRPC server and client in Python the language of _my_ expertise.
 
 _Disclaimer: This repo is my gRPC Tutorial Island (everyone else is welcome too, it ain't a Desert Island 🏜!), so please bear in mind there will be places where I'm probably not following best practices, and using hotfixes._
 
